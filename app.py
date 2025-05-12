@@ -4,6 +4,8 @@ import os
 
 # URL de tu CSV en GitHub
 URL_GITHUB_CSV = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alumnas_procesadas.csv'
+# URL de tu CSV ALQUILERES en GitHub
+URL_GITHUB_CSV_alquileres = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alquileres.csv'
 
 def cargar_datos_inicial():
     # Verifica si ya hay datos en session_state
@@ -19,9 +21,27 @@ def cargar_datos_inicial():
     st.session_state['df'] = df
     return df
 
+def cargar_alquiler_inicial():
+    # Verifica si ya hay datos en session_state
+    if 'alquileres' in st.session_state:
+        return st.session_state['alquileres']
+    # Si existe el archivo local
+    elif os.path.exists('alquileres.csv'):
+        alquileres = pd.read_csv('alquileres.csv')
+    else:
+        # Cargar desde GitHub si no hay local
+        alquileres = pd.read_csv(URL_GITHUB_CSV_alquileres)
+    # Guardar en session_state
+    st.session_state['alquileres'] = alquileres
+    return df
+
 def guardar_datos(df):
     df.to_csv('alumnas.csv', index=False)
     st.session_state['df'] = df
+
+def guardar_datos(alquileres):
+    alquileres.to_csv('alquileres.csv', index=False)
+    st.session_state['alquileres'] = df
 
 # Cargar datos iniciales
 df = cargar_datos_inicial()
