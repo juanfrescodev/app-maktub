@@ -8,18 +8,25 @@ base_dir = os.path.dirname(__file__)
 alumnas_file = os.path.join(base_dir, 'alumnas_procesadas.csv')
 alquileres_file = os.path.join(base_dir, 'alquileres.csv')
 
-# Cargar alumnas
-if os.path.exists(alumnas_file):
-    df = pd.read_csv(alumnas_file)
-else:
-    df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Cuota'])
+# Cargar datos al inicio
+def cargar_datos():
+    if os.path.exists('alumnas.csv'):
+        return pd.read_csv('alumnas.csv')
+    else:
+        return pd.DataFrame({'Nombre': [], 'Grupo': [], 'Pagado': [], 'Monto Pagado': []})
 
-# Cargar o crear alquileres
-if os.path.exists(alquileres_file):
-    alquileres = pd.read_csv(alquileres_file, index_col='Lugar')['Alquiler'].to_dict()
-else:
-    alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
 
+
+# Guardado automático
+def guardar_datos(df):
+    df.to_csv('alumnas.csv', index=False)
+    st.session_state['guardado'] = True
+
+# Inicialización
+if 'guardado' not in st.session_state:
+    st.session_state['guardado'] = False
+
+df = cargar_datos()
 
 # Título de la app con fondo y estilo
 st.markdown("""
@@ -97,7 +104,7 @@ elif menu == 'Agregar nueva alumna':
     if st.button('Agregar'):
         nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
-        df.to_csv(alumnas_file, index=False)
+        guardar_datos(df)
         st.success(f'Alumna {nombre} agregada.')
 
 # Modificar estado de pago
@@ -107,7 +114,7 @@ elif menu == 'Modificar estado de pago':
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
         df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        df.to_csv(alumnas_file, index=False)
+        guardar_datos(df)
         st.success('Pago actualizado.')
 
 # Eliminar alumna
@@ -116,7 +123,7 @@ elif menu == 'Eliminar alumna':
     seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
     if st.button('Eliminar'):
         df = df[df['Nombre'] != seleccion]
-        df.to_csv(alumnas_file, index=False)
+        guardar_datos(df)
         st.success(f'Alumna {seleccion} eliminada.')
 
 # Suma total de pagos
