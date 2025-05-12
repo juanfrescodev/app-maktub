@@ -1,3 +1,34 @@
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# --- Conexión a Google Sheets ---
+def conectar_a_google_sheets():
+    # Define el alcance de la API
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_name('ruta/a/tu/credencial.json', scope)
+    client = gspread.authorize(creds)
+
+    # Abre tu hoja de Google por nombre
+    sheet = client.open("Alumnas_maktub").sheet1  # Cambia "Nombre de tu hoja de cálculo"
+    return sheet
+
+sheet = conectar_a_google_sheets()
+
+def cargar_datos_desde_sheets():
+    # Carga todos los registros desde Google Sheets
+    records = sheet.get_all_records()
+    df = pd.DataFrame(records)
+    return df
+
+df = cargar_datos_desde_sheets()
+
+def actualizar_datos_en_sheets(df):
+    # Borra todos los registros en Google Sheets antes de escribir los nuevos
+    sheet.clear()
+
+    # Escribe los nuevos datos
+    sheet.update([df.columns.values.tolist()] + df.values.tolist())
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -90,7 +121,7 @@ elif menu == 'Agregar nueva alumna':
     if st.button('Agregar'):
         nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
-        df.to_csv(ALUMNAS_FILE, index=False)
+        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
         st.success(f'Alumna {nombre} agregada.')
         st.experimental_rerun()
 
@@ -100,7 +131,7 @@ elif menu == 'Modificar estado de pago':
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
         df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        df.to_csv(ALUMNAS_FILE, index=False)
+        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
         st.success('Pago actualizado.')
         st.experimental_rerun()
 
@@ -109,7 +140,7 @@ elif menu == 'Eliminar alumna':
     seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
     if st.button('Eliminar'):
         df = df[df['Nombre'] != seleccion]
-        df.to_csv(ALUMNAS_FILE, index=False)
+        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
         st.success(f'Alumna {seleccion} eliminada.')
         st.experimental_rerun()
 
