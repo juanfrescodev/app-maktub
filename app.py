@@ -3,22 +3,21 @@ import os
 import pandas as pd
 import plotly.express as px
 
-# Rutas
-base_dir = os.path.dirname(__file__)
-alumnas_file = os.path.join(base_dir, 'alumnas_procesadas.csv')
-alquileres_file = os.path.join(base_dir, 'alquileres.csv')
+# --- Cargar datos desde GitHub (modo solo lectura inicial) ---
+GITHUB_CSV_URL = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alumnas_procesadas.csv'
+GITHUB_CSV_URL_alquiler = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alquileres.csv'
+@st.cache_data
+def cargar_datos():
+    df = pd.read_csv(GITHUB_CSV_URL)
+    alquileres =pd.read_csv(GITHUB_CSV_URL_alquiler)
+    return df, alquileres
 
-# Cargar alumnas
-if os.path.exists(alumnas_file):
-    df = pd.read_csv(alumnas_file)
-else:
-    df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Cuota'])
-
-# Cargar o crear alquileres
-if os.path.exists(alquileres_file):
-    alquileres = pd.read_csv(alquileres_file, index_col='Lugar')['Alquiler'].to_dict()
-else:
-    alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
+# Intentar cargar CSV local (si fue modificado), sino cargar desde GitHub
+try:
+    df = pd.read_csv('alumnas.csv')
+except FileNotFoundError:
+    df = cargar_datos()
+    print("datos cargados desde GitHub")
 
 
 # Título de la app con fondo y estilo
@@ -37,18 +36,11 @@ st.markdown("""
     <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
 """, unsafe_allow_html=True)
 
-# Agregar una imagen de fondo
-st.markdown(
-    f'<img src="https://www.instagram.com/p/C6NQfOiMxC6/?igsh=eWN5NmcwdXYxaXY0" alt="fondo" width="100%" height="auto">',
-    unsafe_allow_html=True
-)
-
-
 # Menú
 menu = st.sidebar.radio(
     'Menú principal',
     [
-        'Inicio', 'Resumen general', 'Cantidad por grupo', 'Alumnas que pagaron',
+        'Inicio', 'Resumen general', 'Listado de alumnas', 'Cantidad por grupo', 'Alumnas que pagaron',
         'Alumnas que no pagaron', 'Agregar nueva alumna', 'Modificar estado de pago',
         'Eliminar alumna', 'Suma total de pagos', 'Total pagado por grupo',
         'Gráficos', 'Valor de alquileres', 'Modificar alquileres'
@@ -69,6 +61,9 @@ elif menu == 'Resumen general':
     st.write(f"👥 Total de alumnas: {total}")
     st.write(f"💰 Alumnas que pagaron: {pagaron} ({porcentaje:.1f}%)")
     st.write(f"🚫 Alumnas que NO pagaron: {no_pagaron} ({100 - porcentaje:.1f}%)")
+
+elif menu == 'Listado de alumnas':
+    st.write(df['Nombre'])
 
 # Cantidad por grupo
 elif menu == 'Cantidad por grupo':
@@ -96,6 +91,7 @@ elif menu == 'Agregar nueva alumna':
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
         df.to_csv(alumnas_file, index=False)
         st.success(f'Alumna {nombre} agregada.')
+        st.experimental_rerun()
 
 # Modificar estado de pago
 elif menu == 'Modificar estado de pago':
@@ -106,6 +102,7 @@ elif menu == 'Modificar estado de pago':
         df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
         df.to_csv(alumnas_file, index=False)
         st.success('Pago actualizado.')
+        st.experimental_rerun()
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
@@ -115,6 +112,7 @@ elif menu == 'Eliminar alumna':
         df = df[df['Nombre'] != seleccion]
         df.to_csv(alumnas_file, index=False)
         st.success(f'Alumna {seleccion} eliminada.')
+        st.experimental_rerun()
 
 # Suma total de pagos
 elif menu == 'Suma total de pagos':
@@ -173,6 +171,7 @@ elif menu == 'Modificar alquileres':
     if st.button('Guardar alquileres'):
         pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
         st.success('Alquileres actualizados.')
+        st.experimental_rerun()
 
 
 # Footer con información de contacto o logo
