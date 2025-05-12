@@ -1,39 +1,27 @@
 import streamlit as st
-import gspread
-from google.oauth2.service_account import Credentials
+import os
 import pandas as pd
 import plotly.express as px
 
-# --- Conectar a Google Sheets ---
-def conectar_a_google_sheets():
-    # Accede a las credenciales desde Streamlit Secrets (archivo secrets.toml)
-    creds_info = st.secrets["gcp_service_account"]  # YA ES UN DICCIONARIO
-    credentials = Credentials.from_service_account_info(creds_info)  # Crea el objeto de credenciales
-    client = gspread.authorize(credentials)  # Autenticación con gspread usando las credenciales
-    sheet = client.open("Alumnas_maktub").worksheet("lista")  # Nombre de la hoja y la hoja de trabajo
-    return sheet
+# Rutas
+base_dir = os.path.dirname(__file__)
+alumnas_file = os.path.join(base_dir, 'alumnas_procesadas.csv')
+alquileres_file = os.path.join(base_dir, 'alquileres.csv')
 
-# Conectar a Google Sheets
-sheet = conectar_a_google_sheets()
+# Cargar alumnas
+if os.path.exists(alumnas_file):
+    df = pd.read_csv(alumnas_file)
+else:
+    df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Cuota'])
 
-# --- Cargar y actualizar datos desde Google Sheets ---
-def cargar_datos_desde_sheets():
-    # Carga todos los registros desde Google Sheets
-    records = sheet.get_all_records()
-    df = pd.DataFrame(records)
-    return df
+# Cargar o crear alquileres
+if os.path.exists(alquileres_file):
+    alquileres = pd.read_csv(alquileres_file, index_col='Lugar')['Alquiler'].to_dict()
+else:
+    alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
 
-# Cargar datos en un DataFrame
-df = cargar_datos_desde_sheets()
 
-def actualizar_datos_en_sheets(df):
-    # Borra todos los registros en Google Sheets antes de escribir los nuevos
-    sheet.clear()
-
-    # Escribe los nuevos datos
-    sheet.update([df.columns.values.tolist()] + df.values.tolist())
-
-# --- Interfaz Streamlit ---
+# Título de la app con fondo y estilo
 st.markdown("""
     <style>
         .title {
@@ -49,6 +37,14 @@ st.markdown("""
     <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
 """, unsafe_allow_html=True)
 
+# Agregar una imagen de fondo
+st.markdown(
+    f'<img src="https://www.instagram.com/p/C6NQfOiMxC6/?igsh=eWN5NmcwdXYxaXY0" alt="fondo" width="100%" height="auto">',
+    unsafe_allow_html=True
+)
+
+
+# Menú
 menu = st.sidebar.radio(
     'Menú principal',
     [
@@ -59,10 +55,11 @@ menu = st.sidebar.radio(
     ]
 )
 
-# --- Secciones ---
+# Inicio
 if menu == 'Inicio':
     st.write('Hola mi amorcito esta es tu app ❤️❤️❤️')
 
+# Resumen general
 elif menu == 'Resumen general':
     st.write('Resumen total de alumnas y pagos.')
     total = len(df)
@@ -76,18 +73,22 @@ elif menu == 'Resumen general':
 elif menu == 'Listado de alumnas':
     st.write(df['Nombre'])
 
+# Cantidad por grupo
 elif menu == 'Cantidad por grupo':
     st.write('Cantidad de alumnas por grupo:')
     st.write(df['Grupo'].value_counts())
 
+# Alumnas que pagaron
 elif menu == 'Alumnas que pagaron':
     st.write('Alumnas que pagaron:')
     st.write(df[df['Cuota'].notna()][['Nombre', 'Grupo']])
 
+# Alumnas que no pagaron
 elif menu == 'Alumnas que no pagaron':
     st.write('Alumnas que NO pagaron:')
     st.write(df[df['Cuota'].isna()][['Nombre', 'Grupo']])
 
+# Agregar nueva alumna
 elif menu == 'Agregar nueva alumna':
     st.write('Agregar nueva alumna:')
     nombre = st.text_input('Nombre')
@@ -96,55 +97,67 @@ elif menu == 'Agregar nueva alumna':
     if st.button('Agregar'):
         nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
-        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
+        df.to_csv(alumnas_file, index=False)
         st.success(f'Alumna {nombre} agregada.')
-        st.experimental_rerun()
 
+# Modificar estado de pago
 elif menu == 'Modificar estado de pago':
     st.write('Modificar estado de pago:')
     seleccion = st.selectbox('Seleccionar alumna', df['Nombre'])
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
         df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
+        df.to_csv(alumnas_file, index=False)
         st.success('Pago actualizado.')
-        st.experimental_rerun()
 
+# Eliminar alumna
 elif menu == 'Eliminar alumna':
     st.write('Eliminar alumna:')
     seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
     if st.button('Eliminar'):
         df = df[df['Nombre'] != seleccion]
-        actualizar_datos_en_sheets(df)  # Guarda los cambios en Google Sheets
+        df.to_csv(alumnas_file, index=False)
         st.success(f'Alumna {seleccion} eliminada.')
-        st.experimental_rerun()
 
+# Suma total de pagos
 elif menu == 'Suma total de pagos':
     suma_pagos = df['Cuota'].sum()
     st.write(f"Suma total de pagos realizados: ${suma_pagos:,.0f}")
 
+# Total pagado por grupo
 elif menu == 'Total pagado por grupo':
     st.write('Total recaudado por grupo:')
     st.write(df.groupby('Grupo')['Cuota'].sum().sort_values(ascending=False))
 
+# Gráficos
 elif menu == 'Gráficos':
+
     st.write('Gráficos interactivos:')
+
+
     st.plotly_chart(px.bar(df.groupby('Grupo')['Cuota'].sum().reset_index(), x='Grupo', y='Cuota', title='Recaudación por Grupo'))
     st.plotly_chart(px.pie(df, names='Grupo', values='Cuota', title='Distribución de pagos por grupo'))
 
+    # Gráfico 2: Pagaron vs No pagaron
     st.write("📊 Porcentaje de alumnas que pagaron vs no pagaron")
     pagaron = df['Cuota'].notna().sum()
     no_pagaron = df['Cuota'].isna().sum()
-    datos_pago = pd.DataFrame({'Estado': ['Pagaron', 'No pagaron'], 'Cantidad': [pagaron, no_pagaron]})
-    fig2 = px.pie(datos_pago, names='Estado', values='Cantidad', color='Estado', title='Distribución de pagos')
+    datos_pago = pd.DataFrame({
+        'Estado': ['Pagaron', 'No pagaron'],
+        'Cantidad': [pagaron, no_pagaron]
+    })
+    fig2 = px.pie(datos_pago, names='Estado', values='Cantidad', color='Estado',
+                title='Distribución de pagos')
     fig2.update_traces(textinfo='percent+label')
     st.plotly_chart(fig2)
-
+    
+    # Cantidad de alumnas por grupo
     cantidad_por_grupo = df['Grupo'].value_counts().reset_index()
     cantidad_por_grupo.columns = ['Grupo', 'Cantidad']
     fig_cant = px.bar(cantidad_por_grupo, x='Grupo', y='Cantidad', title='Cantidad de Alumnas por Grupo', text_auto=True)
     st.plotly_chart(fig_cant)
 
+# Valor de alquileres y ganancia
 elif menu == 'Valor de alquileres':
     st.write('Valores de alquileres y ganancia:')
     for lugar, valor in alquileres.items():
@@ -154,17 +167,18 @@ elif menu == 'Valor de alquileres':
     st.write(f"Total alquiler: ${alquiler_total:,.0f}")
     st.write(f"Ganancia neta: ${ganancia:,.0f}")
 
+# Modificar alquileres
 elif menu == 'Modificar alquileres':
     st.write('Modificar valores de alquiler:')
-    for lugar in list(alquileres.keys()):
-        nuevo_valor = st.number_input(f'{lugar}', value=int(alquileres[lugar]), step=1000)
+    for lugar in alquileres.keys():
+        nuevo_valor = st.number_input(f'{lugar}', value=alquileres[lugar], step=1000)
         alquileres[lugar] = nuevo_valor
     if st.button('Guardar alquileres'):
-        pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(ALQUILERES_FILE, index=False)
+        pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
         st.success('Alquileres actualizados.')
-        st.experimental_rerun()
 
-# --- Footer ---
+
+# Footer con información de contacto o logo
 st.markdown("""
     <style>
         .footer {
@@ -177,6 +191,7 @@ st.markdown("""
     </style>
     <div class="footer">
         <p>Creado por Juan Fresco - Desarrollo de apps, data analitycs</p>
+        
     </div>
 """, unsafe_allow_html=True)
 
