@@ -4,4 +4,4 @@ plotly
 matplotlib
 datetime
 gspread
-oauth2client
+google-auth
