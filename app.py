@@ -1,15 +1,13 @@
+import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
+import json
 
-# --- Conexión a Google Sheets ---
 def conectar_a_google_sheets():
-    # Define el alcance de la API
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credenciales.json', scope)
-    client = gspread.authorize(creds)
-
-    # Abre tu hoja de Google por nombre
-    sheet = client.open("Alumnas_maktub").lista  # Cambia "Nombre de tu hoja de cálculo"
+    creds_info = json.loads(st.secrets["gcp_service_account"])
+    credentials = Credentials.from_service_account_info(creds_info)
+    client = gspread.authorize(credentials)
+    sheet = client.open("Alumnas_maktub").worksheet("lista")
     return sheet
 
 sheet = conectar_a_google_sheets()
