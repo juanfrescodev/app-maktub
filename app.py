@@ -20,8 +20,32 @@ if os.path.exists(alquileres_file):
 else:
     alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
 
+
+# Título de la app con fondo y estilo
+st.markdown("""
+    <style>
+        .title {
+            color: #ff6347;
+            font-size: 40px;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+        }
+    </style>
+    <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
+""", unsafe_allow_html=True)
+
+# Agregar una imagen de fondo
+st.markdown(
+    f'<img src="https://www.instagram.com/p/C6NQfOiMxC6/?igsh=eWN5NmcwdXYxaXY0" alt="fondo" width="100%" height="auto">',
+    unsafe_allow_html=True
+)
+
+
 # Menú
-menu = st.sidebar.selectbox(
+menu = st.sidebar.radio(
     'Menú principal',
     [
         'Inicio', 'Resumen general', 'Cantidad por grupo', 'Alumnas que pagaron',
@@ -149,3 +173,21 @@ elif menu == 'Modificar alquileres':
     if st.button('Guardar alquileres'):
         pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
         st.success('Alquileres actualizados.')
+
+
+# Footer con información de contacto o logo
+st.markdown("""
+    <style>
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #555;
+            background-color: #f0f8ff;
+        }
+    </style>
+    <div class="footer">
+        <p>Creado por Juan Fresco - Desarrollo de apps, data analitycs</p>
+        
+    </div>
+""", unsafe_allow_html=True)
