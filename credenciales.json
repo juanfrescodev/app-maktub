@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "alumnasdanza",
+  "private_key_id": "06b4bdab075fced4cddccd865a85dd7a0e94875e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCx9AvM5MFN4kgZ\nguMWmhRp/OykEfD3b2oR+OChcEatIEAT5lMQye2oHENCYoa4a6Ho92+DPc3OAdX+\niUe4IUz1VDjjj1tJ2A3j7eOwBzpypz6Nz+MP3EtezUuy858s3kdIO8MqVKKwZfpA\nqhYIsp3BnrXqgqpp/OoCK6cRYh3hKuDSXG5yKwtgqWhJKqVtwH4ao96XzQf72hsi\n4l2CmCE/MrAVifS/2a6Ysn8gl4qRB0RYovhuHtr+qtzlTR+xCX2KNUl8EFhjp9UU\neinMTYYftLGe3A79pBE3HL+wrGmf5zP1q/89eHP4/0Wu9B760G3vlKiMxdJeNalk\nhz1wj4eXAgMBAAECgf9FBtrZnYx2pQTcXoL4yoldsVgzkSn/V/gAWQmwjGR9vhJs\nPv+VhYZ+u43nxwnoII3sdxyvrp1j7+0DMl19EPOZu+oRsipkcgQrzPn2kjitQzo8\n7vjbUdyWGN6zTdXt/ha6kUkSyW05PJEeJVNMtAk/HKeXEL6jDZzdlu9qk6aPywTM\n0RaH5ddBclt3TpoM0cGeWX8mzy9Iq7n4IIVhuXk5zjAFtmP70tYBpdXsmv1KxU5x\nRJGxTfEMuBCKh0ZFIActJ7W3eBZnzyy0LWyHwwHYhSYgZJgv86DN3klRA0K3kLes\nHsIfTukHteI1UHxRnRElCNNxVCJxfIT6g/bn9KECgYEA5OhLauaVK4IZU/8zmJj3\nekVUEkfg2zXAWcqv+bFeCYZG2O3RJw1SZzs6ZnHslzZ5M9LbL7a7CR6bKXi/Mgdy\nTk9q28ocgnXmDS4cLQYEP11rX392gP1kSD9HwpYZuRLvQlylK0bd7MeWSqCZDRIn\npZtdw4pCjUZQoJ/IWu1HNHcCgYEAxwPiahA2RRasvc+SJn7LwHfboPKiKYlupucN\nHoC/hTSvZwFL6+EFgLB2/fiCKSxqgqyQ/qlpniyqn1OuAB+Ud1zNBmbup4pltW8i\nMABtbAu8Dh1iepi1nk7kFfS40GfYvqlxeFfLPHtCNLvfdgxdXc77v5pLWySIHqJl\nT+0qreECgYEA2AwDOnc9LV5SR3wjl5Awa5/JlKNwr5UQ4e6ynqlwBu9MKOx0rjYd\noz88hHpcAfAw/t+xblw6NYZEjiTf1/k9QnokciNVOzDJm4D8qOX31lJ2yCCGmYIP\nRz0qnpaK2qnrVigY4Dq3tQY/bFodej+7WcvE+Iyi+bH24VNNh7xRq0sCgYEAn09+\nuYTMzLWABlnZFrO9iw7nY4mXQkTfrP+cQuSxa4JnPr+M9P+mlgOs3VVHbIo/oOdf\nElyvTY1X8D7eNP8SrBI/lXZkaP2iuYCDD4XoEeu62FmxcY45JMbmUqUaJMpceRPO\n35T3/ix1LR2PnkH7o5KDeDedRxKRXGSHUVn7JkECgYAi6q67p9JqJc4tMQ3khmKT\nI2a7WdgN/COBKAYjQkqwBitVPG0t+slV/ZfZc9Z0SRrlMeHCxrWsUrTwVFYc6Uwo\ng5AEFGt1J71NuMtIwKv+5yrgFrm3SD6sRlKpPHvtY7tdlK74vm+drjtNzHy7aPqi\nNGw1YMSJHi+rYXNj1d/RAQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "streamlit-alumnas@alumnasdanza.iam.gserviceaccount.com",
+  "client_id": "104985675305361994763",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-alumnas%40alumnasdanza.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
