@@ -4,7 +4,7 @@ from google.oauth2.service_account import Credentials
 import json
 
 def conectar_a_google_sheets():
-    creds_info = json.loads(st.secrets["gcp_service_account"])
+    creds_info = st.secrets["gcp_service_account"]  # YA ES UN DICCIONARIO
     credentials = Credentials.from_service_account_info(creds_info)
     client = gspread.authorize(credentials)
     sheet = client.open("Alumnas_maktub").worksheet("lista")
