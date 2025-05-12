@@ -38,13 +38,21 @@ def cargar_alquiler_inicial():
 def guardar_datos(df):
     df.to_csv('alumnas.csv', index=False)
     st.session_state['df'] = df
+    st.success('Datos guardados en alumnas.csv')
 
 def guardar_datos(alquileres):
     alquileres.to_csv('alquileres.csv', index=False)
     st.session_state['alquileres'] = df
 
+st.write('Verificando archivo local...')
+if os.path.exists('alumnas.csv'):
+    st.write('Archivo local encontrado ✅')
+else:
+    st.write('Archivo local NO encontrado ❌')
+
 # Cargar datos iniciales
 df = cargar_datos_inicial()
+alquiler = cargar_alquiler_inicial()
 
 
 
