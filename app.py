@@ -9,7 +9,7 @@ def conectar_a_google_sheets():
     client = gspread.authorize(creds)
 
     # Abre tu hoja de Google por nombre
-    sheet = client.open("Alumnas_maktub").sheet1  # Cambia "Nombre de tu hoja de cálculo"
+    sheet = client.open("Alumnas_maktub").lista  # Cambia "Nombre de tu hoja de cálculo"
     return sheet
 
 sheet = conectar_a_google_sheets()
@@ -33,30 +33,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# --- Configuración de archivos ---
-GITHUB_CSV_URL = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alumnas_procesadas.csv'
-GITHUB_CSV_URL_ALQUILER = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alquileres.csv'
-
-ALUMNAS_FILE = 'alumnas.csv'
-ALQUILERES_FILE = 'alquileres.csv'
-
-# --- Cargar datos ---
-@st.cache_data
-def cargar_datos():
-    df = pd.read_csv(GITHUB_CSV_URL)
-    alquileres = pd.read_csv(GITHUB_CSV_URL_ALQUILER)
-    return df, alquileres
-
-def cargar_local_o_github(file_local, url_github):
-    try:
-        return pd.read_csv(file_local)
-    except FileNotFoundError:
-        st.info(f"Datos cargados desde GitHub ({url_github})")
-        return pd.read_csv(url_github)
-
-df = cargar_local_o_github(ALUMNAS_FILE, GITHUB_CSV_URL)
-alquileres_df = cargar_local_o_github(ALQUILERES_FILE, GITHUB_CSV_URL_ALQUILER)
-alquileres = dict(zip(alquileres_df['Lugar'], alquileres_df['Alquiler']))
 
 # --- Interfaz ---
 st.markdown("""
