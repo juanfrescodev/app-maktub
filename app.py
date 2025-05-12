@@ -1,24 +1,31 @@
 import streamlit as st
-import os
 import pandas as pd
-import plotly.express as px
+import os
 
-# Rutas
-base_dir = os.path.dirname(__file__)
-alumnas_file = os.path.join(base_dir, 'alumnas_procesadas.csv')
-alquileres_file = os.path.join(base_dir, 'alquileres.csv')
+# URL de tu CSV en GitHub
+URL_GITHUB_CSV = 'https://raw.githubusercontent.com/juanfrescodev/app-maktub/main/alumnas_procesadas.csv'
 
-# Cargar alumnas
-if os.path.exists(alumnas_file):
-    df = pd.read_csv(alumnas_file)
-else:
-    df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Cuota'])
+def cargar_datos_inicial():
+    # Verifica si ya hay datos en session_state
+    if 'df' in st.session_state:
+        return st.session_state['df']
+    # Si existe el archivo local
+    elif os.path.exists('alumnas.csv'):
+        df = pd.read_csv('alumnas.csv')
+    else:
+        # Cargar desde GitHub si no hay local
+        df = pd.read_csv(URL_GITHUB_CSV)
+    # Guardar en session_state
+    st.session_state['df'] = df
+    return df
 
-# Cargar o crear alquileres
-if os.path.exists(alquileres_file):
-    alquileres = pd.read_csv(alquileres_file, index_col='Lugar')['Alquiler'].to_dict()
-else:
-    alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
+def guardar_datos(df):
+    df.to_csv('alumnas.csv', index=False)
+    st.session_state['df'] = df
+
+# Cargar datos iniciales
+df = cargar_datos_inicial()
+
 
 
 # Título de la app con fondo y estilo
