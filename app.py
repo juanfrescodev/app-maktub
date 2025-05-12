@@ -5,7 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 def conectar_a_google_sheets():
     # Define el alcance de la API
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('ruta/a/tu/credencial.json', scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name('credenciales.json', scope)
     client = gspread.authorize(creds)
 
     # Abre tu hoja de Google por nombre
