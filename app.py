@@ -1,23 +1,29 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
-import json
+import pandas as pd
+import plotly.express as px
 
+# --- Conectar a Google Sheets ---
 def conectar_a_google_sheets():
+    # Accede a las credenciales desde Streamlit Secrets (archivo secrets.toml)
     creds_info = st.secrets["gcp_service_account"]  # YA ES UN DICCIONARIO
-    credentials = Credentials.from_service_account_info(creds_info)
-    client = gspread.authorize(credentials)
-    sheet = client.open("Alumnas_maktub").worksheet("lista")
+    credentials = Credentials.from_service_account_info(creds_info)  # Crea el objeto de credenciales
+    client = gspread.authorize(credentials)  # Autenticación con gspread usando las credenciales
+    sheet = client.open("Alumnas_maktub").worksheet("lista")  # Nombre de la hoja y la hoja de trabajo
     return sheet
 
+# Conectar a Google Sheets
 sheet = conectar_a_google_sheets()
 
+# --- Cargar y actualizar datos desde Google Sheets ---
 def cargar_datos_desde_sheets():
     # Carga todos los registros desde Google Sheets
     records = sheet.get_all_records()
     df = pd.DataFrame(records)
     return df
 
+# Cargar datos en un DataFrame
 df = cargar_datos_desde_sheets()
 
 def actualizar_datos_en_sheets(df):
@@ -27,12 +33,7 @@ def actualizar_datos_en_sheets(df):
     # Escribe los nuevos datos
     sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-
-
-# --- Interfaz ---
+# --- Interfaz Streamlit ---
 st.markdown("""
     <style>
         .title {
