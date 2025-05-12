@@ -52,7 +52,7 @@ else:
 
 # Cargar datos iniciales
 df = cargar_datos_inicial()
-alquiler = cargar_alquiler_inicial()
+alquileres = cargar_alquiler_inicial()
 
 
 
