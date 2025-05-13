@@ -47,10 +47,6 @@ df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-
-# Aplicar la inicialización si es necesario
-df = inicializar_columna_historial(df)
-
 def registrar_pago_historial(nombre_alumna, grupo, monto):
     """Registra un pago en la hoja Historial"""
     fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -197,7 +193,6 @@ if menu == 'Modificar estado de pago':
                 # 🔥 REGISTRAR EN HOJA HISTORIAL (solo si es TRUE y cuota_pagada)
                 grupo_alumna = df.loc[df['Nombre'] == alumna_seleccionada, 'Grupo'].values[0]
                 registrar_pago_historial(alumna_seleccionada, grupo_alumna, cuota_pagada)
-                
                 st.success('Estado, historial y registro externo actualizados correctamente.')
 
 
