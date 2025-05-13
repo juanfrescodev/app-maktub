@@ -41,29 +41,42 @@ def guardar_alquileres(df):
     hoja_alquileres.clear()
     hoja_alquileres.update([df.columns.values.tolist()] + df.values.tolist())
 
-# Guardar datos de alquileres
-def guardar_historial(df):
-    hoja_historial.clear()
-    hoja_historial.update([df.columns.values.tolist()] + df.values.tolist())
-
 # Inicializar datos
 df = cargar_alumnas()
 df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-def registrar_pago_historial(nombre, grupo, cuota_pagada):
-    """
-    Registra el pago en la hoja 'Historial' de Google Sheets.
-    Cada registro lleva: Fecha/Hora, Nombre, Grupo, Cuota pagada.
-    """
+def registrar_pago_historial(nombre_alumna, grupo, cuota_pagada):
+    # Intentar cargar la hoja 'Historial'
     try:
-        hoja_historial = archivo.worksheet('Historial')
-        fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        hoja_historial.append_row([fecha_hora, nombre, grupo, cuota_pagada])
-        print(f"[Historial] Registro añadido: {fecha_hora}, {nombre}, {grupo}, {cuota_pagada}")
+        historial_values = hoja_historial.get_all_values()
+        if len(historial_values) > 1:
+            historial_df = pd.DataFrame(historial_values[1:], columns=historial_values[0])
+        else:
+            # Si no hay datos, crear DataFrame vacío con las columnas deseadas
+            historial_df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Fecha de pago', 'Cuota pagada'])
     except Exception as e:
-        print(f"[Error] No se pudo registrar en historial: {e}")
+        st.error(f"Error al leer la hoja 'Historial': {e}")
+        return
+
+    # Generar nuevo registro
+    fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    nuevo_registro = {
+        'Nombre': nombre_alumna,
+        'Grupo': grupo,
+        'Fecha de pago': fecha_hora,
+        'Cuota pagada': cuota_pagada
+    }
+
+    # Agregar nuevo registro al DataFrame
+    historial_df = historial_df.append(nuevo_registro, ignore_index=True)
+
+    # Actualizar la hoja 'Historial'
+    try:
+        hoja_historial.update([historial_df.columns.values.tolist()] + historial_df.values.tolist())
+    except Exception as e:
+        st.error(f"Error al actualizar la hoja 'Historial': {e}")
 
 
 # Función para modificar el estado de pago y actualizar fecha
@@ -205,7 +218,7 @@ if menu == 'Modificar estado de pago':
                 # 🔥 REGISTRAR EN HOJA HISTORIAL (solo si es TRUE y cuota_pagada)
                 grupo_alumna = df.loc[df['Nombre'] == alumna_seleccionada, 'Grupo'].values[0]
                 registrar_pago_historial(alumna_seleccionada, grupo_alumna, cuota_pagada)
-                guardar_historial(df)
+                
                 st.success('Estado, historial y registro externo actualizados correctamente.')
 
 
