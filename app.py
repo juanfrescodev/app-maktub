@@ -5,7 +5,6 @@ import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
 import datetime 
-import ast
 
 # Autenticación con Google Sheets
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -97,28 +96,27 @@ def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
         st.error('Alumna no encontrada.')
         return df
 
-def obtener_historial_seguro(valor):
-    # Si ya es lista
-    if isinstance(valor, list):
-        return valor
+import json
+
+def obtener_historial_json_seguro(valor):
     # Si es NaN o vacío
     if pd.isna(valor) or valor == '':
         return []
-    # Si es string
+    # Si ya es lista (por error de carga)
+    if isinstance(valor, list):
+        return valor
+    # Si es string, intentar interpretar como JSON
     if isinstance(valor, str):
-        valor = valor.strip()
-        # Si parece una lista (empieza con '[' y termina con ']')
-        if valor.startswith('[') and valor.endswith(']'):
-            try:
-                historial = ast.literal_eval(valor)
-                if isinstance(historial, list):
-                    return historial
-            except Exception as e:
-                st.warning(f'⚠ Error interpretando historial como lista. Se reinicia. Detalle: {e}')
-                return []
-        else:
-            # Si es solo texto plano sin formato de lista, convertirlo en lista de 1 elemento
-            return [valor]
+        try:
+            historial = json.loads(valor)
+            if isinstance(historial, list):
+                return historial
+            else:
+                # Si no es lista, convertir a lista de un solo elemento
+                return [str(historial)]
+        except Exception as e:
+            st.warning(f'⚠ Error interpretando historial como JSON. Se reinicia. Detalle: {e}')
+            return []
     # Si no es reconocible, devolvemos lista vacía
     return []
 
@@ -251,18 +249,18 @@ if st.button('Actualizar Estado'):
         df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
 
     if estado_pago == 'TRUE':
-    # Recuperamos el valor crudo tal como está en la celda
     historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
     st.write(f"🔍 Valor crudo en Historial Pagos antes de procesar: {historial_actual_raw}")
 
-    historial_actual = obtener_historial_seguro(historial_actual_raw)
+    historial_actual = obtener_historial_json_seguro(historial_actual_raw)
 
     fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
     nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
 
     historial_actual.append(nuevo_registro)
 
-    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
+    # Guardar en formato JSON
+    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = json.dumps(historial_actual)
 
     st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
 else:
