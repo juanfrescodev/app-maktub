@@ -130,6 +130,11 @@ elif menu == 'Modificar estado de pago':
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
         df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
+        if nuevo_pago > 0:
+            df['Pago'] == 'TRUE']
+        else:
+            df['Pago'] == 'FALSE']
+            
         guardar_alumnas(df)
         st.success('Pago actualizado.')
 
