@@ -240,36 +240,27 @@ elif menu == 'Modificar estado de pago':
         cuota_pagada = None
 
         if estado_pago == 'TRUE':
-    cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
+            cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
 
-if st.button('Actualizar Estado'):
-    if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
-        st.error('Debe ingresar el valor de la cuota pagada.')
-    else:
-        df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
+        if st.button('Actualizar Estado'):
+            if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
+                st.error('Debe ingresar el valor de la cuota pagada.')
+            else:
+                df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
 
-    if estado_pago == 'TRUE':
-    historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
-    st.write(f"🔍 Valor crudo en Historial Pagos antes de procesar: {historial_actual_raw}")
+                # Actualizar historial de pagos
+                historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
+                historial_actual = obtener_historial_json_seguro(historial_actual_raw)
+                nuevo_registro = f"{cuota_pagada} ({datetime.datetime.now().strftime('%Y-%m')})"
+                historial_actual.append(nuevo_registro)
 
-    historial_actual = obtener_historial_json_seguro(historial_actual_raw)
+                # Guardar como string JSON seguro
+                df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = json.dumps(historial_actual)
 
-    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
-    nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
+                # Guardar cambios generales
+                guardar_alumnas(df)
 
-    historial_actual.append(nuevo_registro)
-
-    # Guardar en formato JSON
-    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = json.dumps(historial_actual)
-
-    st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
-else:
-    st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
-        # Guardamos cambios en Sheets
-        guardar_alumnas(df)
-                    st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
-                else:
-                    st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
+                st.success('Estado y historial actualizados correctamente.')
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
