@@ -44,9 +44,6 @@ df_alquileres[['Lugar', 'Alquiler']] = df_alquileres['Lugar,Alquiler'].str.split
 df_alquileres['Alquiler'] = pd.to_numeric(df_alquileres['Alquiler'], errors='coerce')
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-
-st.write(df_alquileres.columns)
-
 # Título de la app con fondo y estilo
 st.markdown("""
     <style>
