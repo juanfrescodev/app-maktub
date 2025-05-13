@@ -43,7 +43,7 @@ df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
 
-print(df_alquileres.columns)
+st.write(df_alquileres.columns)
 """
 # Título de la app con fondo y estilo
 st.markdown("""
