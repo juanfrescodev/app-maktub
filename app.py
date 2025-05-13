@@ -41,8 +41,6 @@ def guardar_alquileres(df):
 df_alumnas = cargar_alumnas()
 
 df_alquileres = cargar_alquileres()
-df_alquileres[['Lugar', 'Alquiler']] = df_alquileres['Lugar,Alquiler'].str.split(',', expand=True)
-df_alquileres['Alquiler'] = pd.to_numeric(df_alquileres['Alquiler'], errors='coerce')
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
 # Título de la app con fondo y estilo
