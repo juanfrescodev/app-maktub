@@ -98,21 +98,30 @@ def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
         return df
 
 def obtener_historial_seguro(valor):
+    # Si ya es lista
     if isinstance(valor, list):
         return valor
+    # Si es NaN o vacío
     if pd.isna(valor) or valor == '':
         return []
+    # Si es string
     if isinstance(valor, str):
-        try:
-            historial = ast.literal_eval(valor)
-            if isinstance(historial, list):
-                return historial
-            else:
+        valor = valor.strip()
+        # Si parece una lista (empieza con '[' y termina con ']')
+        if valor.startswith('[') and valor.endswith(']'):
+            try:
+                historial = ast.literal_eval(valor)
+                if isinstance(historial, list):
+                    return historial
+            except Exception as e:
+                st.warning(f'⚠ Error interpretando historial como lista. Se reinicia. Detalle: {e}')
                 return []
-        except Exception as e:
-            st.warning(f'⚠ Error interpretando historial. Se reinicia. Detalle: {e}')
-            return []
+        else:
+            # Si es solo texto plano sin formato de lista, convertirlo en lista de 1 elemento
+            return [valor]
+    # Si no es reconocible, devolvemos lista vacía
     return []
+
 
 
 
@@ -242,20 +251,22 @@ if st.button('Actualizar Estado'):
         df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
 
     if estado_pago == 'TRUE':
-        historial_actual = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
-        historial_actual = obtener_historial_seguro(historial_actual)
-    
-        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
-        nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
-    
-        historial_actual.append(nuevo_registro)
-    
-        df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
-    
-        st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
-    else:
-        st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
+    # Recuperamos el valor crudo tal como está en la celda
+    historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
+    st.write(f"🔍 Valor crudo en Historial Pagos antes de procesar: {historial_actual_raw}")
 
+    historial_actual = obtener_historial_seguro(historial_actual_raw)
+
+    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
+    nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
+
+    historial_actual.append(nuevo_registro)
+
+    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
+
+    st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
+else:
+    st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
         # Guardamos cambios en Sheets
         guardar_alumnas(df)
                     st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
