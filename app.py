@@ -99,12 +99,12 @@ elif menu == 'Cantidad por grupo':
 # Alumnas que pagaron
 elif menu == 'Alumnas que pagaron':
     st.write('Alumnas que pagaron:')
-    st.write(df[df['Cuota'].notna()][['Nombre', 'Grupo']])
+    st.write(df[df['Pago'] == 'True'][['Nombre', 'Grupo']])
 
 # Alumnas que no pagaron
 elif menu == 'Alumnas que no pagaron':
     st.write('Alumnas que NO pagaron:')
-    st.write(df[df['Pagó'] == 'False'][['Nombre', 'Grupo']])
+    st.write(df[df['Pago'] == 'False'][['Nombre', 'Grupo']])
 
 #agregar nueva alumna
 elif menu == 'Agregar nueva alumna':
