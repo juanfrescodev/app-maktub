@@ -128,7 +128,7 @@ menu = st.sidebar.radio(
 
 # Inicio
 if menu == 'Inicio':
-    st.write('Hola mi amorcito esta es tu app ❤️❤️❤️')
+    st.write('Gestión de alumnas y cuotas, escuela Maktub')
 
 # Resumen general
 elif menu == 'Resumen general':
@@ -328,4 +328,3 @@ st.markdown("""
         
     </div>
 """, unsafe_allow_html=True)
-
