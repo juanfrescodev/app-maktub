@@ -62,22 +62,21 @@ def registrar_pago_historial(nombre_alumna, grupo, cuota_pagada):
 
     # Generar nuevo registro
     fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    nuevo_registro = {
+    nuevo_registro = pd.DataFrame([{
         'Nombre': nombre_alumna,
         'Grupo': grupo,
         'Fecha de pago': fecha_hora,
         'Cuota pagada': cuota_pagada
-    }
+    }])
 
-    # Agregar nuevo registro al DataFrame
-    historial_df = historial_df.append(nuevo_registro, ignore_index=True)
+    # Concatenar el nuevo registro al DataFrame existente
+    historial_df = pd.concat([historial_df, nuevo_registro], ignore_index=True)
 
     # Actualizar la hoja 'Historial'
     try:
         hoja_historial.update([historial_df.columns.values.tolist()] + historial_df.values.tolist())
     except Exception as e:
         st.error(f"Error al actualizar la hoja 'Historial': {e}")
-
 
 # Función para modificar el estado de pago y actualizar fecha
 def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
