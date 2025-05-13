@@ -112,8 +112,8 @@ elif menu == 'Agregar nueva alumna':
     cuota = st.number_input('Cuota pagada (dejar en 0 si no pagó)', min_value=0)
     if st.button('Agregar'):
         nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
-        df_alumnas = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
-        guardar_alumnas(df_alumnas)
+        df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
+        guardar_alumnas(df)
         st.success(f'Alumna {nombre} agregada.')
 
 #modificar estado de pago
@@ -123,16 +123,16 @@ elif menu == 'Modificar estado de pago':
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
         df_alumnas.loc[df_alumnas['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        guardar_alumnas(df_alumnas)
+        guardar_alumnas(df)
         st.success('Pago actualizado.')
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
     st.write('Eliminar alumna:')
-    seleccion = st.selectbox('Seleccionar alumna para eliminar', df_alumnas['Nombre'])
+    seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
     if st.button('Eliminar'):
-        df_alumnas = df_alumnas[df_alumnas['Nombre'] != seleccion]
-        guardar_alumnas(df_alumnas)
+        df = df[df['Nombre'] != seleccion]
+        guardar_alumnas(dfs)
         st.success(f'Alumna {seleccion} eliminada.')
 
 # Suma total de pagos
