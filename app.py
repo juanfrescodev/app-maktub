@@ -41,7 +41,7 @@ def guardar_alquileres(df):
 
 # Inicializar datos
 df = cargar_alumnas()
-
+df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
