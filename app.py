@@ -4,7 +4,8 @@ import pandas as pd
 import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
-import datetime 
+import datetime
+import json
 
 # Autenticación con Google Sheets
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -12,7 +13,7 @@ credentials = Credentials.from_service_account_info(st.secrets["gcp_service_acco
 client = gspread.authorize(credentials)
 
 # Abrir la hoja de cálculo
-spreadsheet = client.open("Alumnas_maktub")  
+spreadsheet = client.open("Alumnas_maktub")
 
 # Obtener las hojas de trabajo
 hoja_alumnas = spreadsheet.worksheet("Alumnas")
@@ -25,7 +26,6 @@ def cargar_alumnas():
 
 # Guardar datos de alumnas con validación segura
 def guardar_alumnas(df):
-    # Convertir todo a string y reemplazar None o NaN por ''
     df_safe = df.fillna('').astype(str)
     hoja_alumnas.clear()
     hoja_alumnas.update([df_safe.columns.values.tolist()] + df_safe.values.tolist())
@@ -46,31 +46,59 @@ df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-# Añadimos columnas para el historial y la fecha del pago
+# Añadir columnas para el historial y la fecha del pago
 def inicializar_columna_historial(df):
-    # Agregar columnas si no existen
     if 'Historial Pagos' not in df.columns:
         df['Historial Pagos'] = ''
     if 'Fecha de pago' not in df.columns:
         df['Fecha de pago'] = None
     return df
 
-# Aplicamos la inicialización si es necesario
+# Aplicar la inicialización si es necesario
 df = inicializar_columna_historial(df)
 
+# Función para asegurar que el historial se maneje correctamente como una lista
+def obtener_historial_json_seguro(valor):
+    if pd.isna(valor) or valor == '':
+        return []
+    if isinstance(valor, list):
+        return valor
+    if isinstance(valor, str):
+        try:
+            historial = json.loads(valor)
+            if isinstance(historial, list):
+                return historial
+            return [str(historial)]
+        except Exception as e:
+            st.warning(f'⚠ Error interpretando historial como JSON. Se reinicia. Detalle: {e}')
+            return []
+    return []
+
+# Función para modificar el estado de pago y actualizar fecha
+def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
+    index = df[df['Nombre'] == nombre_alumna].index
+    if not index.empty:
+        df.at[index[0], 'Pago'] = nuevo_estado
+        if nuevo_estado == 'TRUE':
+            df.at[index[0], 'Fecha de pago'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            df.at[index[0], 'Cuota'] = cuota_pagada
+        else:
+            df.at[index[0], 'Fecha de pago'] = None
+            df.at[index[0], 'Cuota'] = 0
+        guardar_alumnas(df)
+        return df
+    else:
+        st.error('Alumna no encontrada.')
+        return df
+
+# Lógica de renovación de pagos
 def renovar_pagos(df):
-    # Resetea los pagos y almacena el historial
     mes_actual = datetime.datetime.now().strftime('%Y-%m')
-    
-    # Guardar el historial de pagos
     df['Historial Pagos'] = df.apply(lambda row: f"{row['Historial Pagos']} | {row['Cuota']} ({mes_actual})" if row['Cuota'] > 0 else row['Historial Pagos'], axis=1)
-    
-    # Resetear las cuotas a 0
     df['Cuota'] = 0
     df['Pago'] = 'FALSE'
-    df['Fecha de pago'] = None  # Limpiar la fecha de pago si es necesario
-    guardar_alumnas(df)  # Guardar los cambios en la hoja de Google Sheets
-
+    df['Fecha de pago'] = None
+    guardar_alumnas(df)
     return df
 
 # Verificar si es inicio de mes para realizar renovación
@@ -78,77 +106,12 @@ if datetime.datetime.now().day == 1:
     df = renovar_pagos(df)
     st.success('Renovación de pagos realizada para el mes actual.')
 
-
-# Función para modificar estado de pago y actualizar fecha
-def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
-    index = df[df['Nombre'] == nombre_alumna].index
-    if not index.empty:
-        df.at[index[0], 'Pago'] = nuevo_estado
-        if nuevo_estado == 'TRUE':
-            df.at[index[0], 'Fecha de pago'] = datetime.datetime.now().strftime('%Y-%m-%d')
-            df.at[index[0], 'Cuota'] = cuota_pagada  # Registra la cuota ingresada
-        else:
-            df.at[index[0], 'Fecha de pago'] = None  # Limpia la fecha si no pagó
-            df.at[index[0], 'Cuota'] = 0  # Limpia el valor de cuota si no pagó
-        guardar_alumnas(df)
-        return df
-    else:
-        st.error('Alumna no encontrada.')
-        return df
-
-import json
-
-def obtener_historial_json_seguro(valor):
-    # Si es NaN o vacío
-    if pd.isna(valor) or valor == '':
-        return []
-    # Si ya es lista (por error de carga)
-    if isinstance(valor, list):
-        return valor
-    # Si es string, intentar interpretar como JSON
-    if isinstance(valor, str):
-        try:
-            historial = json.loads(valor)
-            if isinstance(historial, list):
-                return historial
-            else:
-                # Si no es lista, convertir a lista de un solo elemento
-                return [str(historial)]
-        except Exception as e:
-            st.warning(f'⚠ Error interpretando historial como JSON. Se reinicia. Detalle: {e}')
-            return []
-    # Si no es reconocible, devolvemos lista vacía
-    return []
-
-
-
-
-# Título de la app con fondo y estilo
-st.markdown("""
-    <style>
-        .title {
-            color: #ff6347;
-            font-size: 40px;
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f0f8ff;
-            border-radius: 10px;
-        }
-    </style>
-    <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
-""", unsafe_allow_html=True)
-
-
-# Menú
+# Menú de la aplicación
 menu = st.sidebar.radio(
     'Menú principal',
-    [
-        'Inicio', 'Resumen general', 'Listado de alumnas', 'Consultar alumna', 'Cantidad por grupo', 'Alumnas que pagaron',
-        'Alumnas que no pagaron', 'Agregar nueva alumna', 'Modificar estado de pago',
-        'Eliminar alumna', 'Suma total de pagos', 'Total pagado por grupo',
-        'Gráficos', 'Valor de alquileres', 'Modificar alquileres'
-    ]
+    ['Inicio', 'Resumen general', 'Listado de alumnas', 'Consultar alumna', 'Cantidad por grupo', 
+     'Alumnas que pagaron', 'Alumnas que no pagaron', 'Agregar nueva alumna', 'Modificar estado de pago',
+     'Eliminar alumna', 'Suma total de pagos', 'Total pagado por grupo', 'Gráficos', 'Valor de alquileres', 'Modificar alquileres']
 )
 
 # Inicio
@@ -228,17 +191,15 @@ elif menu == 'Agregar nueva alumna':
         guardar_alumnas(df)
         st.success(f'Alumna {nombre} agregada.')
 
-#modificar estado de pago
-elif menu == 'Modificar estado de pago':
+# Modificar estado de pago
+if menu == 'Modificar estado de pago':
     st.write('Modificar estado de pago:')
     if df.empty:
         st.info('No hay alumnas cargadas.')
     else:
         alumna_seleccionada = st.selectbox('Seleccionar alumna:', df['Nombre'].unique())
         estado_pago = st.radio('Nuevo estado de pago:', ['TRUE', 'FALSE'])
-
         cuota_pagada = None
-
         if estado_pago == 'TRUE':
             cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
 
@@ -247,19 +208,12 @@ elif menu == 'Modificar estado de pago':
                 st.error('Debe ingresar el valor de la cuota pagada.')
             else:
                 df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
-
-                # Actualizar historial de pagos
                 historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
                 historial_actual = obtener_historial_json_seguro(historial_actual_raw)
                 nuevo_registro = f"{cuota_pagada} ({datetime.datetime.now().strftime('%Y-%m')})"
                 historial_actual.append(nuevo_registro)
-
-                # Guardar como string JSON seguro
                 df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = json.dumps(historial_actual)
-
-                # Guardar cambios generales
                 guardar_alumnas(df)
-
                 st.success('Estado y historial actualizados correctamente.')
 
 # Eliminar alumna
