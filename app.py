@@ -59,13 +59,7 @@ st.markdown("""
     <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
 """, unsafe_allow_html=True)
 
-# Agregar una imagen de fondo
-st.markdown(
-    f'<img src="https://www.instagram.com/p/C6NQfOiMxC6/?igsh=eWN5NmcwdXYxaXY0" alt="fondo" width="100%" height="auto">',
-    unsafe_allow_html=True
-)
 
-# Funcionalidades
 # Menú
 menu = st.sidebar.radio(
     'Menú principal',
@@ -196,10 +190,13 @@ elif menu == 'Modificar alquileres':
         nuevo_valor = st.number_input(f'{lugar}', value=alquileres[lugar], step=1000)
         alquileres[lugar] = nuevo_valor
     if st.button('Guardar alquileres'):
-        pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
-        guardar_alquileres(df_alquileres)
-        st.success('Alquileres actualizados.')
-
+        # Actualizamos los valores de alquileres en el dataframe
+        df_alquileres_actualizado = pd.DataFrame({
+            'Lugar': alquileres.keys(),
+            'Alquiler': alquileres.values()
+        })
+        guardar_alquileres(df_alquileres_actualizado)  # Guardamos la nueva tabla de alquileres en Google Sheets
+        st.success('Alquileres actualizados correctamente.')
 
 # Footer con información de contacto o logo
 st.markdown("""
