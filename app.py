@@ -210,7 +210,7 @@ elif menu == 'Modificar estado de pago':
         st.info('No hay alumnas cargadas.')
     else:
         alumna_seleccionada = st.selectbox('Seleccionar alumna:', df['Nombre'].unique())
-        estado_pago = st.radio('Nuevo estado de pago:', ['Pagó', 'No pagó'])
+        estado_pago = st.radio('Nuevo estado de pago:', ['TRUE', 'FALSE'])
 
         cuota_pagada = None
 
@@ -218,12 +218,12 @@ elif menu == 'Modificar estado de pago':
             cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
 
         if st.button('Actualizar Estado'):
-            if estado_pago == 'Pagó' and (cuota_pagada is None or cuota_pagada == 0):
+            if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
                 st.error('Debe ingresar el valor de la cuota pagada.')
             else:
                 df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
 
-                if estado_pago == 'Pagó':
+                if estado_pago == 'TRUE':
                     fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
                     historial_actual = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
                     if pd.isna(historial_actual) or historial_actual == '':
