@@ -223,6 +223,20 @@ elif menu == 'Modificar estado de pago':
             else:
                 df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
                 if estado_pago == 'TRUE':
+                    historial_actual = df.loc[df['Nombre'] == seleccion, 'Historial Pagos'].values[0]
+                    if pd.isna(historial_actual) or historial_actual == '':
+                        historial_actual = []
+                    else:
+                        historial_actual = ast.literal_eval(historial_actual)
+                    
+                    # Crear nuevo registro de pago
+                    nuevo_registro = f"{fecha_actual}: Pagado - {cuota}"
+                    
+                    # Agregar al historial
+                    historial_actual.append(nuevo_registro)
+                    
+                    # Guardar actualizado en la celda
+                    df.loc[df['Nombre'] == seleccion, 'Historial Pagos'] = str(historial_actual)
                     st.success(f'✅ Pago marcado como realizado el {datetime.datetime.now().strftime("%Y-%m-%d")} por ${cuota_pagada}')
                 else:
                     st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
