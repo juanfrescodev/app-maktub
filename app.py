@@ -205,6 +205,7 @@ if menu == 'Modificar estado de pago':
                 # 🔥 REGISTRAR EN HOJA HISTORIAL (solo si es TRUE y cuota_pagada)
                 grupo_alumna = df.loc[df['Nombre'] == alumna_seleccionada, 'Grupo'].values[0]
                 registrar_pago_historial(alumna_seleccionada, grupo_alumna, cuota_pagada)
+                guardar_historial(df)
                 st.success('Estado, historial y registro externo actualizados correctamente.')
 
 
