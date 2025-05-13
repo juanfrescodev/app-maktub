@@ -139,7 +139,7 @@ elif menu == 'Eliminar alumna':
     seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
     if st.button('Eliminar'):
         df = df[df['Nombre'] != seleccion]
-        guardar_alumnas(dfs)
+        guardar_alumnas(df)
         st.success(f'Alumna {seleccion} eliminada.')
 
 # Suma total de pagos
