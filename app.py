@@ -216,27 +216,45 @@ elif menu == 'Modificar estado de pago':
         cuota_pagada = None
 
         if estado_pago == 'TRUE':
-            cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
+    cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
 
-        if st.button('Actualizar Estado'):
-            if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
-                st.error('Debe ingresar el valor de la cuota pagada.')
+if st.button('Actualizar Estado'):
+    if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
+        st.error('Debe ingresar el valor de la cuota pagada.')
+    else:
+        df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
+
+        if estado_pago == 'TRUE':
+            # Obtenemos el historial actual con seguridad
+            historial_actual = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
+
+            if pd.isna(historial_actual) or historial_actual == '':
+                historial_actual = []
             else:
-                df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
-
-                if estado_pago == 'TRUE':
-                    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
-                    historial_actual = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
-                    if pd.isna(historial_actual) or historial_actual == '':
+                try:
+                    historial_actual = ast.literal_eval(historial_actual)
+                    if not isinstance(historial_actual, list):
                         historial_actual = []
-                    else:
-                        historial_actual = ast.literal_eval(historial_actual)
+                except Exception as e:
+                    st.warning(f"Error interpretando historial previo. Se reinicia historial. Detalle: {e}")
+                    historial_actual = []
 
-                    nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
-                    historial_actual.append(nuevo_registro)
+            # Crear nuevo registro de pago
+            fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
+            nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
 
-                    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
-                    guardar_alumnas(df)
+            # Agregar al historial
+            historial_actual.append(nuevo_registro)
+
+            # Guardar actualizado en la celda
+            df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
+
+            st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
+        else:
+            st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
+
+        # Guardamos cambios en Sheets
+        guardar_alumnas(df)
                     st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
                 else:
                     st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
