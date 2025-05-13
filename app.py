@@ -1,38 +1,219 @@
 import streamlit as st
+import os
 import pandas as pd
+import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
 
-# Configuración de credenciales
-SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
-SERVICE_ACCOUNT_INFO = {
-    "type": "service_account",
-    "project_id": "alumnasdanza",
-    "private_key_id": "cf2cb4afae8957968edc2240a2558203df1e3694",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCzO9V5pt0L92iG\nCxacw6GtC84xbWmyw7cAfmfZ2+hlgGDSI+W625ruImnSuQ0ajFVsu9/AfafzNU/7\nq/1cYo5QjDJMRi4hH9YvX4QFHZw4D2GsKxIdQK91y74H9qgL0n3GTXEkj/QRvWEP\nw4hxisUB28FioEcctqhS61IM7GhCIXNvaXnxtXIOA0TPIH9oHvuf6VVs0reOuUII\n/qS+x8mcAUZexEaVujOHU5SpwHVfp0Lj28lhnHpNbXtjMU86GJpKn9GIzU6/WDR8\ntASQeskyPDWutfwAwZkYE3PzFVtfcfFN+JkIzJ3DrNRADi0IfV0LOXUMLQOKO3ZV\npErV/JgVAgMBAAECggEACs+UG8dd0+fzbQpkLcZ7DQYGROL1mivF8Qiu2Owzw1OQ\nA3zY0YGHgc+flG9HBA/s4ycd4u1xYPEZRvPjz1u+e8tJCWK+S48xCyB2xRw5HQSI\nfqsGZ69MJg3JA4/0KOpkXb60EWGBdkR3A01nAHo/UdJggsNqJqg51O6Ov2rPCxYB\ni2w/rztp/1qLWHaWvI8fevJUBWOKuPL44M9xUvy4jhL167ZYiNoXz77Sp1xICzDR\nTT2M9nJqoZueD3Q43y0Zzg3PB8LgWX1dzPGRTvckO3QZB7/h3qM/LCDppmpgjWY+\nkx8e10kqhAlHQXekEUvcpPEL+7pmgbDZbTGlaX2l4QKBgQDlBOC6/DznTcpOnvI+\nwHbnJBzixD0sCA8BGdCk+IzSs5f9xbm/EVTXGGffQlUXLZ23UUFP6Gbk3xRkQNf7\njYKGrvZTeWtdKrL72H4lVf5afNnsdc8BTpWtkKfo4dzZ21pB0st09VVsZfFRih+D\nEcAxrfYxf/3aTk6tYb9AT9vjjQKBgQDIWXNeLMU0PsuJADJy9u7cdfuH+7NkghY4\nqLLx0qlYxmDdcIxb65WQpBz3QQU2ubhuwBM9kdvR6osbd/HRWW9ZzIRQbnUrpcK7\nwyRvWg9tT100DiprimabElOpKOvlU7qwwK8/giQ/Nj3a/w3YE+LMobwtafcxQi8H\nHtOUx5jgqQKBgC8uyBX97ZZB4pI8EPB4uoZ4XDMj9u5hYqX5aZDzXB/0vDWeTNxe\nd7ow3wWSJvG1hi7EYM5TtQ8mHo9hBJ5g0yloVntwInx5VZKpUaPjiZme607aHqHI\nTPILQWyrS9LebEPvZ9dazBSfFA6WhFN+jrgtfPFJy0T0qSTzZHGdglHpAoGBAIGk\noGrIPbPZDovQfNS3xUkTb3hG/4aCRy7SuziQQNUZSYUBV1ID1/yItdWpVV5cP2Qr\nFkg5Ii1rwCg+LVRyswNAvD3vvBJKaQBm/iSv+luZh44vvHNqU4r1CP3lZQA4dg36\nIWzPIfVlfBFCCgtQkuonnkUk1LgjQ5sv72nO3rZBAoGBAJJM2CjpLVfhmgTDjOKI\nt5ro0sXHLlkjR0L65tICO4K2NGQlmXTJeydTfxPrQ3/61QQvk3gJ1pMZmAEk+1hp\nq91Nw/DCRv7vGWtOZH7QrBK2gs9780JztHthqhfhEgTqE/ECJ4cAuMIz14WY9B0h\n0P4cD9u4fS4QgJgMPHAwAb8e\n-----END PRIVATE KEY-----\n",
-    "client_email": "streamlit-alumnas@alumnasdanza.iam.gserviceaccount.com",
-    "client_id": "104985675305361994763",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-alumnas%40alumnasdanza.iam.gserviceaccount.com"
-}
+# Autenticación con Google Sheets
+scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+client = gspread.authorize(credentials)
 
-# Conectar a Google Sheets
-credentials = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPE)
-gc = gspread.authorize(credentials)
+# Abrir la hoja de cálculo
+spreadsheet = client.open("Alumnas_maktub")  
 
-# Abrir Google Sheet por URL
-spreadsheet_url = "https://docs.google.com/spreadsheets/d/154ueaF5pT7lDqk8ECO9I8r_6ZNOhXFWLodYaeZNjP00/edit#gid=0"
-sh = gc.open_by_url(spreadsheet_url)
+# Obtener las hojas de trabajo
+hoja_alumnas = spreadsheet.worksheet("Alumnas")
+hoja_alquileres = spreadsheet.worksheet("Alquileres")
 
-# Seleccionar primera hoja
-worksheet = sh.get_worksheet(0)
+# Cargar datos de alumnas
+def cargar_alumnas():
+    data = hoja_alumnas.get_all_records()
+    return pd.DataFrame(data)
 
-# Cargar datos en DataFrame
-data = worksheet.get_all_records()
-df = pd.DataFrame(data)
+# Guardar datos de alumnas
+def guardar_alumnas(df):
+    hoja_alumnas.clear()
+    hoja_alumnas.update([df.columns.values.tolist()] + df.values.tolist())
 
-# Mostrar en Streamlit
-st.title("Datos de Alumnas")
-st.dataframe(df)
+# Cargar datos de alquileres
+def cargar_alquileres():
+    data = hoja_alquileres.get_all_records()
+    return pd.DataFrame(data)
+
+# Guardar datos de alquileres
+def guardar_alquileres(df):
+    hoja_alquileres.clear()
+    hoja_alquileres.update([df.columns.values.tolist()] + df.values.tolist())
+
+# Inicializar datos
+df_alumnas = cargar_alumnas()
+df_alquileres = cargar_alquileres()
+alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
+
+
+# Título de la app con fondo y estilo
+st.markdown("""
+    <style>
+        .title {
+            color: #ff6347;
+            font-size: 40px;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+        }
+    </style>
+    <div class="title">📊 Gestión Escuela de Danzas Maktub</div>
+""", unsafe_allow_html=True)
+
+# Agregar una imagen de fondo
+st.markdown(
+    f'<img src="https://www.instagram.com/p/C6NQfOiMxC6/?igsh=eWN5NmcwdXYxaXY0" alt="fondo" width="100%" height="auto">',
+    unsafe_allow_html=True
+)
+
+# Funcionalidades
+# Menú
+menu = st.sidebar.radio(
+    'Menú principal',
+    [
+        'Inicio', 'Resumen general', 'Listado de alumnas', 'Cantidad por grupo', 'Alumnas que pagaron',
+        'Alumnas que no pagaron', 'Agregar nueva alumna', 'Modificar estado de pago',
+        'Eliminar alumna', 'Suma total de pagos', 'Total pagado por grupo',
+        'Gráficos', 'Valor de alquileres', 'Modificar alquileres'
+    ]
+)
+
+# Inicio
+if menu == 'Inicio':
+    st.write('Hola mi amorcito esta es tu app ❤️❤️❤️')
+
+# Resumen general
+elif menu == 'Resumen general':
+    st.write('Resumen total de alumnas y pagos.')
+    total = len(df)
+    pagaron = df['Cuota'].notna().sum()
+    no_pagaron = total - pagaron
+    porcentaje = (pagaron / total) * 100 if total > 0 else 0
+    st.write(f"👥 Total de alumnas: {total}")
+    st.write(f"💰 Alumnas que pagaron: {pagaron} ({porcentaje:.1f}%)")
+    st.write(f"🚫 Alumnas que NO pagaron: {no_pagaron} ({100 - porcentaje:.1f}%)")
+
+elif menu == 'Listado de alumnas':
+    st.write(df['Nombre'])
+
+# Cantidad por grupo
+elif menu == 'Cantidad por grupo':
+    st.write('Cantidad de alumnas por grupo:')
+    st.write(df['Grupo'].value_counts())
+
+# Alumnas que pagaron
+elif menu == 'Alumnas que pagaron':
+    st.write('Alumnas que pagaron:')
+    st.write(df[df['Cuota'].notna()][['Nombre', 'Grupo']])
+
+# Alumnas que no pagaron
+elif menu == 'Alumnas que no pagaron':
+    st.write('Alumnas que NO pagaron:')
+    st.write(df[df['Cuota'].isna()][['Nombre', 'Grupo']])
+
+# Agregar nueva alumna
+elif menu == 'Agregar nueva alumna':
+    st.write('Agregar nueva alumna:')
+    nombre = st.text_input('Nombre')
+    grupo = st.text_input('Grupo')
+    cuota = st.number_input('Cuota pagada (dejar en 0 si no pagó)', min_value=0)
+    if st.button('Agregar'):
+        nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
+        df_alumnas = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
+        guardar_alumnas(df_alumnas)
+        st.success(f'Alumna {nombre} agregada.')
+
+#modificar estado de pago
+elif menu == 'Modificar estado de pago':
+    st.write('Modificar estado de pago:')
+    seleccion = st.selectbox('Seleccionar alumna', df_alumnas['Nombre'])
+    nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
+    if st.button('Actualizar'):
+        df_alumnas.loc[df_alumnas['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
+        guardar_alumnas(df_alumnas)
+        st.success('Pago actualizado.')
+
+# Eliminar alumna
+elif menu == 'Eliminar alumna':
+    st.write('Eliminar alumna:')
+    seleccion = st.selectbox('Seleccionar alumna para eliminar', df_alumnas['Nombre'])
+    if st.button('Eliminar'):
+        df_alumnas = df_alumnas[df_alumnas['Nombre'] != seleccion]
+        guardar_alumnas(df_alumnas)
+        st.success(f'Alumna {seleccion} eliminada.')
+
+# Suma total de pagos
+elif menu == 'Suma total de pagos':
+    suma_pagos = df['Cuota'].sum()
+    st.write(f"Suma total de pagos realizados: ${suma_pagos:,.0f}")
+
+# Total pagado por grupo
+elif menu == 'Total pagado por grupo':
+    st.write('Total recaudado por grupo:')
+    st.write(df.groupby('Grupo')['Cuota'].sum().sort_values(ascending=False))
+
+# Gráficos
+elif menu == 'Gráficos':
+
+    st.write('Gráficos interactivos:')
+
+
+    st.plotly_chart(px.bar(df.groupby('Grupo')['Cuota'].sum().reset_index(), x='Grupo', y='Cuota', title='Recaudación por Grupo'))
+    st.plotly_chart(px.pie(df, names='Grupo', values='Cuota', title='Distribución de pagos por grupo'))
+
+    # Gráfico 2: Pagaron vs No pagaron
+    st.write("📊 Porcentaje de alumnas que pagaron vs no pagaron")
+    pagaron = df['Cuota'].notna().sum()
+    no_pagaron = df['Cuota'].isna().sum()
+    datos_pago = pd.DataFrame({
+        'Estado': ['Pagaron', 'No pagaron'],
+        'Cantidad': [pagaron, no_pagaron]
+    })
+    fig2 = px.pie(datos_pago, names='Estado', values='Cantidad', color='Estado',
+                title='Distribución de pagos')
+    fig2.update_traces(textinfo='percent+label')
+    st.plotly_chart(fig2)
+    
+    # Cantidad de alumnas por grupo
+    cantidad_por_grupo = df['Grupo'].value_counts().reset_index()
+    cantidad_por_grupo.columns = ['Grupo', 'Cantidad']
+    fig_cant = px.bar(cantidad_por_grupo, x='Grupo', y='Cantidad', title='Cantidad de Alumnas por Grupo', text_auto=True)
+    st.plotly_chart(fig_cant)
+
+# Valor de alquileres y ganancia
+elif menu == 'Valor de alquileres':
+    st.write('Valores de alquileres y ganancia:')
+    for lugar, valor in alquileres.items():
+        st.write(f"{lugar}: ${valor:,.0f}")
+    alquiler_total = sum(alquileres.values())
+    ganancia = df['Cuota'].sum() - alquiler_total
+    st.write(f"Total alquiler: ${alquiler_total:,.0f}")
+    st.write(f"Ganancia neta: ${ganancia:,.0f}")
+
+# Modificar alquileres
+elif menu == 'Modificar alquileres':
+    st.write('Modificar valores de alquiler:')
+    for lugar in alquileres.keys():
+        nuevo_valor = st.number_input(f'{lugar}', value=alquileres[lugar], step=1000)
+        alquileres[lugar] = nuevo_valor
+    if st.button('Guardar alquileres'):
+        pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
+        guardar_alquileres(df_alquileres)
+        st.success('Alquileres actualizados.')
+
+
+# Footer con información de contacto o logo
+st.markdown("""
+    <style>
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #555;
+            background-color: #f0f8ff;
+        }
+    </style>
+    <div class="footer">
+        <p>Creado por Juan Fresco - Desarrollo de apps, data analitycs</p>
+        
+    </div>
+""", unsafe_allow_html=True)
