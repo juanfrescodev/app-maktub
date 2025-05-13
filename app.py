@@ -49,7 +49,7 @@ alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
 def registrar_pago_historial(nombre_alumna, grupo, monto):
     """Registra un pago en la hoja Historial"""
-    fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    fecha_hora = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     hoja_historial.append_row([fecha_hora, nombre_alumna, grupo, monto, "Pago"])
     print(f"✅ Pago registrado en Historial: {nombre_alumna} - {grupo} - ${monto} - {fecha_hora}")
 
