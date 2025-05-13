@@ -38,7 +38,7 @@ def guardar_alquileres(df):
     hoja_alquileres.update([df.columns.values.tolist()] + df.values.tolist())
 
 # Inicializar datos
-df_alumnas = cargar_alumnas()
+df = cargar_alumnas()
 
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
