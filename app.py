@@ -2,23 +2,45 @@ import streamlit as st
 import os
 import pandas as pd
 import plotly.express as px
+import gspread
+from google.oauth2.service_account import Credentials
 
-# Rutas
-base_dir = os.path.dirname(__file__)
-alumnas_file = os.path.join(base_dir, 'alumnas_procesadas.csv')
-alquileres_file = os.path.join(base_dir, 'alquileres.csv')
+# Autenticación con Google Sheets
+scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+client = gspread.authorize(credentials)
 
-# Cargar alumnas
-if os.path.exists(alumnas_file):
-    df = pd.read_csv(alumnas_file)
-else:
-    df = pd.DataFrame(columns=['Nombre', 'Grupo', 'Cuota'])
+# Abrir la hoja de cálculo
+spreadsheet = client.open("Escuela de Danzas")  # Reemplaza con el nombre de tu hoja de cálculo
 
-# Cargar o crear alquileres
-if os.path.exists(alquileres_file):
-    alquileres = pd.read_csv(alquileres_file, index_col='Lugar')['Alquiler'].to_dict()
-else:
-    alquileres = {'Mitre': 99000, 'Alma Latina': 160000, 'Campichuelo': 92000}
+# Obtener las hojas de trabajo
+hoja_alumnas = spreadsheet.worksheet("Alumnas")
+hoja_alquileres = spreadsheet.worksheet("Alquileres")
+
+# Cargar datos de alumnas
+def cargar_alumnas():
+    data = hoja_alumnas.get_all_records()
+    return pd.DataFrame(data)
+
+# Guardar datos de alumnas
+def guardar_alumnas(df):
+    hoja_alumnas.clear()
+    hoja_alumnas.update([df.columns.values.tolist()] + df.values.tolist())
+
+# Cargar datos de alquileres
+def cargar_alquileres():
+    data = hoja_alquileres.get_all_records()
+    return pd.DataFrame(data)
+
+# Guardar datos de alquileres
+def guardar_alquileres(df):
+    hoja_alquileres.clear()
+    hoja_alquileres.update([df.columns.values.tolist()] + df.values.tolist())
+
+# Inicializar datos
+df_alumnas = cargar_alumnas()
+df_alquileres = cargar_alquileres()
+alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
 
 # Título de la app con fondo y estilo
@@ -43,7 +65,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
+# Funcionalidades
 # Menú
 menu = st.sidebar.radio(
     'Menú principal',
@@ -96,27 +118,27 @@ elif menu == 'Agregar nueva alumna':
     cuota = st.number_input('Cuota pagada (dejar en 0 si no pagó)', min_value=0)
     if st.button('Agregar'):
         nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
-        df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
-        df.to_csv(alumnas_file, index=False)
+        df_alumnas = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
+        guardar_alumnas(df_alumnas)
         st.success(f'Alumna {nombre} agregada.')
 
-# Modificar estado de pago
+#modificar estado de pago
 elif menu == 'Modificar estado de pago':
     st.write('Modificar estado de pago:')
-    seleccion = st.selectbox('Seleccionar alumna', df['Nombre'])
+    seleccion = st.selectbox('Seleccionar alumna', df_alumnas['Nombre'])
     nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
     if st.button('Actualizar'):
-        df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        df.to_csv(alumnas_file, index=False)
+        df_alumnas.loc[df_alumnas['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
+        guardar_alumnas(df_alumnas)
         st.success('Pago actualizado.')
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
     st.write('Eliminar alumna:')
-    seleccion = st.selectbox('Seleccionar alumna para eliminar', df['Nombre'])
+    seleccion = st.selectbox('Seleccionar alumna para eliminar', df_alumnas['Nombre'])
     if st.button('Eliminar'):
-        df = df[df['Nombre'] != seleccion]
-        df.to_csv(alumnas_file, index=False)
+        df_alumnas = df_alumnas[df_alumnas['Nombre'] != seleccion]
+        guardar_alumnas(df_alumnas)
         st.success(f'Alumna {seleccion} eliminada.')
 
 # Suma total de pagos
@@ -175,6 +197,7 @@ elif menu == 'Modificar alquileres':
         alquileres[lugar] = nuevo_valor
     if st.button('Guardar alquileres'):
         pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
+        guardar_alquileres(df_alquileres)
         st.success('Alquileres actualizados.')
 
 
