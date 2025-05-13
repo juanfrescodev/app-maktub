@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
+import datetime 
 
 # Autenticación con Google Sheets
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -45,6 +46,55 @@ df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
+# Añadimos columnas para el historial y la fecha del pago
+def inicializar_columna_historial(df):
+    # Agregar columnas si no existen
+    if 'Historial Pagos' not in df.columns:
+        df['Historial Pagos'] = ''
+    if 'Fecha de pago' not in df.columns:
+        df['Fecha de pago'] = None
+    return df
+
+# Aplicamos la inicialización si es necesario
+df = inicializar_columna_historial(df)
+
+def renovar_pagos(df):
+    # Resetea los pagos y almacena el historial
+    mes_actual = datetime.datetime.now().strftime('%Y-%m')
+    
+    # Guardar el historial de pagos
+    df['Historial Pagos'] = df.apply(lambda row: f"{row['Historial Pagos']} | {row['Cuota']} ({mes_actual})" if row['Cuota'] > 0 else row['Historial Pagos'], axis=1)
+    
+    # Resetear las cuotas a 0
+    df['Cuota'] = 0
+    df['Pago'] = 'FALSE'
+    df['Fecha de pago'] = None  # Limpiar la fecha de pago si es necesario
+    guardar_alumnas(df)  # Guardar los cambios en la hoja de Google Sheets
+
+    return df
+
+# Verificar si es inicio de mes para realizar renovación
+if datetime.datetime.now().day == 1:
+    df = renovar_pagos(df)
+    st.success('Renovación de pagos realizada para el mes actual.')
+
+
+# Función para modificar estado de pago y actualizar fecha
+def modificar_estado_pago(df, nombre_alumna, nuevo_estado):
+    index = df[df['Nombre'] == nombre_alumna].index
+    if not index.empty:
+        df.at[index[0], 'Pago'] = nuevo_estado
+        if nuevo_estado == 'TRUE':
+            df.at[index[0], 'Fecha de pago'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        else:
+            df.at[index[0], 'Fecha de pago'] = None  # Limpia la fecha si se marca como no pagado
+        guardar_alumnas(df)
+        return df
+    else:
+        st.error('Alumna no encontrada.')
+        return df
+
+
 # Título de la app con fondo y estilo
 st.markdown("""
     <style>
@@ -66,7 +116,7 @@ st.markdown("""
 menu = st.sidebar.radio(
     'Menú principal',
     [
-        'Inicio', 'Resumen general', 'Listado de alumnas', 'Cantidad por grupo', 'Alumnas que pagaron',
+        'Inicio', 'Resumen general', 'Listado de alumnas', 'Consultar alumna', 'Cantidad por grupo', 'Alumnas que pagaron',
         'Alumnas que no pagaron', 'Agregar nueva alumna', 'Modificar estado de pago',
         'Eliminar alumna', 'Suma total de pagos', 'Total pagado por grupo',
         'Gráficos', 'Valor de alquileres', 'Modificar alquileres'
@@ -90,6 +140,12 @@ elif menu == 'Resumen general':
 
 elif menu == 'Listado de alumnas':
     st.write(df['Nombre'])
+
+# Mostrar historial de pagos por alumna
+elif menu== 'consultar alumna':
+    seleccion = st.selectbox('Seleccionar alumna para consultar', df['Nombre'])
+    st.write(df[[['Nombre'] == seleccion, 'Historial Pagos']])
+
 
 # Cantidad por grupo
 elif menu == 'Cantidad por grupo':
@@ -126,14 +182,18 @@ elif menu == 'Agregar nueva alumna':
 #modificar estado de pago
 elif menu == 'Modificar estado de pago':
     st.write('Modificar estado de pago:')
-    seleccion = st.selectbox('Seleccionar alumna', df['Nombre'])
-    nuevo_pago = st.number_input('Nuevo valor de cuota (0 para eliminar pago)', min_value=0)
-    if st.button('Actualizar'):
-        df.loc[df['Nombre'] == seleccion, 'Cuota'] = nuevo_pago if nuevo_pago > 0 else None
-        if nuevo_pago > 0:
-            df['Pago'] == ['TRUE']
-        else:
-            df['Pago'] == ['FALSE']
+    if df.empty:
+        st.info('No hay alumnas cargadas.')
+    else:
+        alumna_seleccionada = st.selectbox('Seleccionar alumna:', df['Nombre'].unique())
+        estado_pago = st.radio('Nuevo estado de pago:', ['TRUE', 'FALSE'])
+
+        if st.button('Actualizar Estado'):
+            df = modificar_estado_pago(df, alumna_seleccionada, estado_pago)
+            if estado_pago == 'TRUE':
+                st.success(f'✅ Pago marcado como realizado el {datetime.datetime.now().strftime("%Y-%m-%d")}')
+            else:
+                st.info('ℹ️ Estado marcado como no pagado y fecha de pago limpiada.')
             
         guardar_alumnas(df)
         st.success('Pago actualizado.')
