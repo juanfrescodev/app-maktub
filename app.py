@@ -39,11 +39,7 @@ def guardar_alquileres(df):
 
 # Inicializar datos
 df_alumnas = cargar_alumnas()
-df_alumnas[['Nombre', 'Cuota', 'Grupo', 'Pagó']] = df_alumnas['Nombre,Cuota,Grupo,PagÃ³'].str.split(',', expand=True)
-# Convertir 'Cuota' a numérico
-df_alumnas['Cuota'] = pd.to_numeric(df_alumnas['Cuota'], errors='coerce')
-# Convertir 'Pagó' a booleano (asume que los valores son 'True' y 'False' como strings)
-df_alumnas['Pagó'] = df_alumnas['Pagó'].str.strip().map({'True': True, 'False': False})
+
 df_alquileres = cargar_alquileres()
 df_alquileres[['Lugar', 'Alquiler']] = df_alquileres['Lugar,Alquiler'].str.split(',', expand=True)
 df_alquileres['Alquiler'] = pd.to_numeric(df_alquileres['Alquiler'], errors='coerce')
