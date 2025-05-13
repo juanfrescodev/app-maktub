@@ -44,3 +44,5 @@ df_alquileres = cargar_alquileres()
 
 
 st.write(df_alquileres.columns)
+data = hoja_alquileres.get_all_records()
+st.write(data)
