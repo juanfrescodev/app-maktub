@@ -40,7 +40,7 @@ def guardar_alquileres(df):
 # Inicializar datos
 df_alumnas = cargar_alumnas()
 df_alquileres = cargar_alquileres()
-# alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
+alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
 
 # Título de la app con fondo y estilo
@@ -178,7 +178,7 @@ elif menu == 'Gráficos':
     cantidad_por_grupo.columns = ['Grupo', 'Cantidad']
     fig_cant = px.bar(cantidad_por_grupo, x='Grupo', y='Cantidad', title='Cantidad de Alumnas por Grupo', text_auto=True)
     st.plotly_chart(fig_cant)
-"""
+
 # Valor de alquileres y ganancia
 elif menu == 'Valor de alquileres':
     st.write('Valores de alquileres y ganancia:')
@@ -199,7 +199,7 @@ elif menu == 'Modificar alquileres':
         pd.DataFrame({'Lugar': alquileres.keys(), 'Alquiler': alquileres.values()}).to_csv(alquileres_file, index=False)
         guardar_alquileres(df_alquileres)
         st.success('Alquileres actualizados.')
-"""
+
 
 # Footer con información de contacto o logo
 st.markdown("""
