@@ -80,19 +80,22 @@ if datetime.datetime.now().day == 1:
 
 
 # Función para modificar estado de pago y actualizar fecha
-def modificar_estado_pago(df, nombre_alumna, nuevo_estado):
+def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
     index = df[df['Nombre'] == nombre_alumna].index
     if not index.empty:
         df.at[index[0], 'Pago'] = nuevo_estado
         if nuevo_estado == 'TRUE':
             df.at[index[0], 'Fecha de pago'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            df.at[index[0], 'Cuota'] = cuota_pagada  # Registra la cuota ingresada
         else:
-            df.at[index[0], 'Fecha de pago'] = None  # Limpia la fecha si se marca como no pagado
+            df.at[index[0], 'Fecha de pago'] = None  # Limpia la fecha si no pagó
+            df.at[index[0], 'Cuota'] = 0  # Limpia el valor de cuota si no pagó
         guardar_alumnas(df)
         return df
     else:
         st.error('Alumna no encontrada.')
         return df
+
 
 
 # Título de la app con fondo y estilo
@@ -188,15 +191,20 @@ elif menu == 'Modificar estado de pago':
         alumna_seleccionada = st.selectbox('Seleccionar alumna:', df['Nombre'].unique())
         estado_pago = st.radio('Nuevo estado de pago:', ['TRUE', 'FALSE'])
 
+        cuota_pagada = None  # Inicializamos como None
+
+        if estado_pago == 'TRUE':
+            cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
+
         if st.button('Actualizar Estado'):
-            df = modificar_estado_pago(df, alumna_seleccionada, estado_pago)
-            if estado_pago == 'TRUE':
-                st.success(f'✅ Pago marcado como realizado el {datetime.datetime.now().strftime("%Y-%m-%d")}')
+            if estado_pago == 'TRUE' and (cuota_pagada is None or cuota_pagada == 0):
+                st.error('Debe ingresar el valor de la cuota pagada.')
             else:
-                st.info('ℹ️ Estado marcado como no pagado y fecha de pago limpiada.')
-            
-        guardar_alumnas(df)
-        st.success('Pago actualizado.')
+                df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
+                if estado_pago == 'TRUE':
+                    st.success(f'✅ Pago marcado como realizado el {datetime.datetime.now().strftime("%Y-%m-%d")} por ${cuota_pagada}')
+                else:
+                    st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
