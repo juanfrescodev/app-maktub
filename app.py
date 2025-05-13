@@ -67,7 +67,7 @@ def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
     if not index.empty:
         df.at[index[0], 'Pago'] = nuevo_estado
         if nuevo_estado == 'TRUE':
-            df.at[index[0], 'Fecha de pago'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            df.at[index[0], 'Fecha de pago'] = datetime.now().strftime('%Y-%m-%d')
             df.at[index[0], 'Cuota'] = cuota_pagada
         else:
             df.at[index[0], 'Fecha de pago'] = None
