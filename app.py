@@ -235,7 +235,7 @@ elif menu == 'Modificar estado de pago':
                     historial_actual.append(nuevo_registro)
 
                     df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
-                    guardar_datos(df)
+                    guardar_alumnas(df)
                     st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
                 else:
                     st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
