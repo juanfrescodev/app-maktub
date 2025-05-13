@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
-import datetime
+from datetime import datetime
 import json
 
 # Autenticación con Google Sheets
@@ -47,11 +47,18 @@ df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-def registrar_pago_historial(nombre_alumna, grupo, monto):
-    """Registra un pago en la hoja Historial"""
-    fecha_hora = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    hoja_historial.append_row([fecha_hora, nombre_alumna, grupo, monto, "Pago"])
-    print(f"✅ Pago registrado en Historial: {nombre_alumna} - {grupo} - ${monto} - {fecha_hora}")
+def registrar_pago_historial(nombre, grupo, cuota_pagada):
+    """
+    Registra el pago en la hoja 'Historial' de Google Sheets.
+    Cada registro lleva: Fecha/Hora, Nombre, Grupo, Cuota pagada.
+    """
+    try:
+        hoja_historial = archivo.worksheet('Historial')
+        fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        hoja_historial.append_row([fecha_hora, nombre, grupo, cuota_pagada])
+        print(f"[Historial] Registro añadido: {fecha_hora}, {nombre}, {grupo}, {cuota_pagada}")
+    except Exception as e:
+        print(f"[Error] No se pudo registrar en historial: {e}")
 
 
 # Función para modificar el estado de pago y actualizar fecha
