@@ -5,6 +5,7 @@ import plotly.express as px
 import gspread
 from google.oauth2.service_account import Credentials
 import datetime 
+import ast
 
 # Autenticación con Google Sheets
 scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
