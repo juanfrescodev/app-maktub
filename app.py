@@ -11,7 +11,7 @@ credentials = Credentials.from_service_account_info(st.secrets["gcp_service_acco
 client = gspread.authorize(credentials)
 
 # Abrir la hoja de cálculo
-spreadsheet = client.open(Alumnas_maktub")  
+spreadsheet = client.open("Alumnas_maktub")  
 
 # Obtener las hojas de trabajo
 hoja_alumnas = spreadsheet.worksheet("Alumnas")
