@@ -80,7 +80,7 @@ def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
 
 # Lógica de renovación de pagos
 def renovar_pagos(df):
-    mes_actual = datetime.datetime.now().strftime('%Y-%m')
+    mes_actual = datetime.now().strftime('%Y-%m')
     df['Historial Pagos'] = df.apply(lambda row: f"{row['Historial Pagos']} | {row['Cuota']} ({mes_actual})" if row['Cuota'] > 0 else row['Historial Pagos'], axis=1)
     df['Cuota'] = 0
     df['Pago'] = 'FALSE'
@@ -89,7 +89,7 @@ def renovar_pagos(df):
     return df
 
 # Verificar si es inicio de mes para realizar renovación
-if datetime.datetime.now().day == 1:
+if datetime.now().day == 1:
     df = renovar_pagos(df)
     st.success('Renovación de pagos realizada para el mes actual.')
 
