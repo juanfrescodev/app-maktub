@@ -40,7 +40,7 @@ def guardar_alquileres(df):
 # Inicializar datos
 df_alumnas = cargar_alumnas()
 df_alquileres = cargar_alquileres()
-alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
+
 
 
 st.write(df_alquileres.columns)
