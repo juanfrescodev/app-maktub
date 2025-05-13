@@ -145,9 +145,30 @@ elif menu == 'Listado de alumnas':
     st.write(df['Nombre'])
 
 # Mostrar historial de pagos por alumna
-elif menu== 'consultar alumna':
-    seleccion = st.selectbox('Seleccionar alumna para consultar', df['Nombre'])
-    st.write(df[[['Nombre'] == seleccion, 'Historial Pagos']])
+elif menu == 'Consultar alumna':
+    if df.empty:
+        st.info('No hay alumnas cargadas.')
+    else:
+        seleccion = st.selectbox('Seleccionar alumna para consultar:', df['Nombre'].unique())
+        
+        # Filtramos la fila completa de la alumna
+        datos_alumna = df[df['Nombre'] == seleccion]
+
+        # Mostramos todos los datos actuales
+        st.write('📋 Datos actuales de la alumna:')
+        st.dataframe(datos_alumna)
+
+        # Mostramos historial si la columna 'Historial Pagos' existe y tiene datos
+        if 'Historial Pagos' in datos_alumna.columns:
+            historial = datos_alumna['Historial Pagos'].values[0]
+            if historial and isinstance(historial, list):
+                st.write('📜 Historial de pagos:')
+                for item in historial:
+                    st.write(f"- {item}")
+            else:
+                st.info('Esta alumna no tiene historial cargado.')
+        else:
+            st.warning('La columna Historial Pagos no existe.')
 
 
 # Cantidad por grupo
