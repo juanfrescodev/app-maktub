@@ -212,7 +212,7 @@ elif menu == 'Modificar estado de pago':
         alumna_seleccionada = st.selectbox('Seleccionar alumna:', df['Nombre'].unique())
         estado_pago = st.radio('Nuevo estado de pago:', ['TRUE', 'FALSE'])
 
-        cuota_pagada = None  # Inicializamos como None
+        cuota_pagada = None
 
         if estado_pago == 'TRUE':
             cuota_pagada = st.number_input('Ingrese el valor de la cuota pagada:', min_value=0)
@@ -222,22 +222,21 @@ elif menu == 'Modificar estado de pago':
                 st.error('Debe ingresar el valor de la cuota pagada.')
             else:
                 df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
+
                 if estado_pago == 'TRUE':
-                    historial_actual = df.loc[df['Nombre'] == seleccion, 'Historial Pagos'].values[0]
+                    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
+                    historial_actual = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
                     if pd.isna(historial_actual) or historial_actual == '':
                         historial_actual = []
                     else:
                         historial_actual = ast.literal_eval(historial_actual)
-                    
-                    # Crear nuevo registro de pago
-                    nuevo_registro = f"{fecha_actual}: Pagado - {cuota}"
-                    
-                    # Agregar al historial
+
+                    nuevo_registro = f"{fecha_actual}: Pagado - {cuota_pagada}"
                     historial_actual.append(nuevo_registro)
-                    
-                    # Guardar actualizado en la celda
-                    df.loc[df['Nombre'] == seleccion, 'Historial Pagos'] = str(historial_actual)
-                    st.success(f'✅ Pago marcado como realizado el {datetime.datetime.now().strftime("%Y-%m-%d")} por ${cuota_pagada}')
+
+                    df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = str(historial_actual)
+
+                    st.success(f'✅ Pago marcado como realizado el {fecha_actual} por ${cuota_pagada}')
                 else:
                     st.info('ℹ️ Estado marcado como no pagado, fecha y cuota limpiadas.')
 
