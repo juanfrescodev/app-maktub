@@ -22,10 +22,12 @@ def cargar_alumnas():
     data = hoja_alumnas.get_all_records()
     return pd.DataFrame(data)
 
-# Guardar datos de alumnas
+# Guardar datos de alumnas con validación segura
 def guardar_alumnas(df):
+    # Convertir todo a string y reemplazar None o NaN por ''
+    df_safe = df.fillna('').astype(str)
     hoja_alumnas.clear()
-    hoja_alumnas.update([df.columns.values.tolist()] + df.values.tolist())
+    hoja_alumnas.update([df_safe.columns.values.tolist()] + df_safe.values.tolist())
 
 # Cargar datos de alquileres
 def cargar_alquileres():
@@ -104,14 +106,18 @@ elif menu == 'Alumnas que no pagaron':
     st.write('Alumnas que NO pagaron:')
     st.write(df[df['Cuota'].isna()][['Nombre', 'Grupo']])
 
-# Agregar nueva alumna
+#agregar nueva alumna
 elif menu == 'Agregar nueva alumna':
     st.write('Agregar nueva alumna:')
     nombre = st.text_input('Nombre')
     grupo = st.text_input('Grupo')
     cuota = st.number_input('Cuota pagada (dejar en 0 si no pagó)', min_value=0)
     if st.button('Agregar'):
-        nueva_fila = {'Nombre': nombre, 'Grupo': grupo, 'Cuota': cuota if cuota > 0 else None}
+        nueva_fila = {
+            'Nombre': nombre,
+            'Grupo': grupo,
+            'Cuota': cuota if cuota > 0 else ''  # 👈 Ahora usamos string vacío en lugar de None
+        }
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
         guardar_alumnas(df)
         st.success(f'Alumna {nombre} agregada.')
