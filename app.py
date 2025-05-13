@@ -18,6 +18,7 @@ spreadsheet = client.open("Alumnas_maktub")
 # Obtener las hojas de trabajo
 hoja_alumnas = spreadsheet.worksheet("Alumnas")
 hoja_alquileres = spreadsheet.worksheet("Alquileres")
+hoja_historial = archivo.worksheet('Historial')
 
 # Cargar datos de alumnas
 def cargar_alumnas():
@@ -46,33 +47,16 @@ df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
 df_alquileres = cargar_alquileres()
 alquileres = dict(zip(df_alquileres['Lugar'], df_alquileres['Alquiler']))
 
-# Añadir columnas para el historial y la fecha del pago
-def inicializar_columna_historial(df):
-    if 'Historial Pagos' not in df.columns:
-        df['Historial Pagos'] = ''
-    if 'Fecha de pago' not in df.columns:
-        df['Fecha de pago'] = None
-    return df
 
 # Aplicar la inicialización si es necesario
 df = inicializar_columna_historial(df)
 
-# Función para asegurar que el historial se maneje correctamente como una lista
-def obtener_historial_json_seguro(valor):
-    if pd.isna(valor) or valor == '':
-        return []
-    if isinstance(valor, list):
-        return valor
-    if isinstance(valor, str):
-        try:
-            historial = json.loads(valor)
-            if isinstance(historial, list):
-                return historial
-            return [str(historial)]
-        except Exception as e:
-            st.warning(f'⚠ Error interpretando historial como JSON. Se reinicia. Detalle: {e}')
-            return []
-    return []
+def registrar_pago_historial(nombre_alumna, grupo, monto):
+    """Registra un pago en la hoja Historial"""
+    fecha_hora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    hoja_historial.append_row([fecha_hora, nombre_alumna, grupo, monto, "Pago"])
+    print(f"✅ Pago registrado en Historial: {nombre_alumna} - {grupo} - ${monto} - {fecha_hora}")
+
 
 # Función para modificar el estado de pago y actualizar fecha
 def modificar_estado_pago(df, nombre_alumna, nuevo_estado, cuota_pagada=None):
@@ -191,7 +175,7 @@ elif menu == 'Agregar nueva alumna':
         guardar_alumnas(df)
         st.success(f'Alumna {nombre} agregada.')
 
-# Modificar estado de pago
+#modificar estado de pago
 if menu == 'Modificar estado de pago':
     st.write('Modificar estado de pago:')
     if df.empty:
@@ -208,13 +192,14 @@ if menu == 'Modificar estado de pago':
                 st.error('Debe ingresar el valor de la cuota pagada.')
             else:
                 df = modificar_estado_pago(df, alumna_seleccionada, estado_pago, cuota_pagada)
-                historial_actual_raw = df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'].values[0]
-                historial_actual = obtener_historial_json_seguro(historial_actual_raw)
-                nuevo_registro = f"{cuota_pagada} ({datetime.datetime.now().strftime('%Y-%m')})"
-                historial_actual.append(nuevo_registro)
-                df.loc[df['Nombre'] == alumna_seleccionada, 'Historial Pagos'] = json.dumps(historial_actual)
                 guardar_alumnas(df)
-                st.success('Estado y historial actualizados correctamente.')
+
+                # 🔥 REGISTRAR EN HOJA HISTORIAL (solo si es TRUE y cuota_pagada)
+                grupo_alumna = df.loc[df['Nombre'] == alumna_seleccionada, 'Grupo'].values[0]
+                registrar_pago_historial(alumna_seleccionada, grupo_alumna, cuota_pagada)
+                
+                st.success('Estado, historial y registro externo actualizados correctamente.')
+
 
 # Eliminar alumna
 elif menu == 'Eliminar alumna':
