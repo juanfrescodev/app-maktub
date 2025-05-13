@@ -41,6 +41,11 @@ def guardar_alquileres(df):
     hoja_alquileres.clear()
     hoja_alquileres.update([df.columns.values.tolist()] + df.values.tolist())
 
+# Guardar datos de alquileres
+def guardar_historial(df):
+    hoja_historial.clear()
+    hoja_historial.update([df.columns.values.tolist()] + df.values.tolist())
+
 # Inicializar datos
 df = cargar_alumnas()
 df['Cuota'] = pd.to_numeric(df['Cuota'], errors='coerce')
