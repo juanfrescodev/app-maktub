@@ -18,7 +18,7 @@ spreadsheet = client.open("Alumnas_maktub")
 # Obtener las hojas de trabajo
 hoja_alumnas = spreadsheet.worksheet("Alumnas")
 hoja_alquileres = spreadsheet.worksheet("Alquileres")
-hoja_historial = archivo.worksheet('Historial')
+hoja_historial = spreadsheet.worksheet('Historial')
 
 # Cargar datos de alumnas
 def cargar_alumnas():
