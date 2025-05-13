@@ -150,18 +150,24 @@ elif menu == 'Consultar alumna':
         st.write('📋 Datos actuales de la alumna:')
         st.dataframe(datos_alumna)
 
-        # Mostramos historial si la columna 'Historial Pagos' existe y tiene datos
-        if 'Historial Pagos' in datos_alumna.columns:
-            historial = datos_alumna['Historial Pagos'].values[0]
-            if historial and isinstance(historial, list):
-                st.write('📜 Historial de pagos:')
-                for item in historial:
-                    st.write(f"- {item}")
-            else:
-                st.info('Esta alumna no tiene historial cargado.')
-        else:
-            st.warning('La columna Historial Pagos no existe.')
+        # Ahora vamos a buscar el historial en la hoja 'Historial'
+        try:
+            # Buscar registros de la alumna en la hoja Historial
+            historial_values = hoja_historial.get_all_values()
+            historial_df = pd.DataFrame(historial_values[1:], columns=historial_values[0])
 
+            # Filtramos por el nombre de la alumna
+            historial_alumna = historial_df[historial_df['Nombre'] == seleccion]
+
+            if not historial_alumna.empty:
+                st.write('📜 Historial de pagos:')
+                for _, row in historial_alumna.iterrows():
+                    # Mostramos cada registro del historial
+                    st.write(f"💸 {row['Cuota pagada']} | Fecha: {row['Fecha de pago']}")
+            else:
+                st.info('Esta alumna no tiene historial de pagos registrado.')
+        except Exception as e:
+            st.error(f"Error al cargar el historial de pagos: {e}")
 
 # Cantidad por grupo
 elif menu == 'Cantidad por grupo':
