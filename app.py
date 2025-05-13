@@ -116,7 +116,7 @@ elif menu == 'Agregar nueva alumna':
         nueva_fila = {
             'Nombre': nombre,
             'Grupo': grupo,
-            'Cuota': cuota if cuota > 0 else ''  # 👈 Ahora usamos string vacío en lugar de None
+            'Cuota': cuota if cuota > 0 else '',  # 👈 Ahora usamos string vacío en lugar de None
             'Pago': 'TRUE' if cuota > 0 else 'FALSE'
         }
         df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
