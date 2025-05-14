@@ -73,6 +73,11 @@ Eliminar alumna: Permite eliminar alumnas del sistema.
 
 Modificar alquileres: Permite modificar el valor de los alquileres de salones utilizados.
 
+## 📚 Caso de Estudio (Completo)
+
+Puedes leer el caso de estudio completo, con contexto, desafíos, solución e impacto aquí:  
+👉 [Ver Caso de Estudio completo](Caso_de_estudio.md)
+
 ## 🛠 Autor
 Juan Fresco
 Desarrollador de soluciones digitales y automatización.
