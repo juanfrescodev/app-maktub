@@ -41,12 +41,13 @@ streamlit run app.py
 Esto abrirá la aplicación en tu navegador.
 
 
-🌐 Acceso Online
+##🌐 Acceso Online
 Puedes acceder a la versión en línea de la aplicación sin necesidad de instalar nada desde el siguiente enlace:
 https://maktubapp.streamlit.app/
+
 Desde la versión web podrás utilizar todas las funcionalidades de la aplicación de manera completa.
 
-📦 Dependencias principales
+##📦 Dependencias principales
 Streamlit: Framework para crear aplicaciones web interactivas.
 
 Pandas: Manejo y análisis de datos.
@@ -59,7 +60,7 @@ Plotly: Visualización de datos en gráficos interactivos.
 
 Gspread: Interacción con Google Sheets.
 
-💡 Características
+##💡 Características
 Consultar alumna: Permite ver estado de pago e historial de una alumna seleccionada.
 
 Agregar nueva alumna: Permite agregar nuevas alumnas al sistema.
@@ -72,7 +73,7 @@ Eliminar alumna: Permite eliminar alumnas del sistema.
 
 Modificar alquileres: Permite modificar el valor de los alquileres de salones utilizados.
 
-🛠 Autor
+##🛠 Autor
 Juan Fresco
 Desarrollador de soluciones digitales y automatización.
 https://github.com/juanfrescodev
