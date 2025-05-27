@@ -2,13 +2,13 @@
 
 Aplicación web desarrollada en **Streamlit** para la gestión integral de alumnas, pagos y grupos en una escuela de danzas.
 
-Fue creada para cubrir una necesidad real de la escuela de danzas **Maktub**, brindando una solución práctica, simple y accesible para la administración de pagos y asistencia.
+Esta aplicación fue creada para cubrir una necesidad real de la escuela de danzas **Maktub**, brindando una solución práctica, simple y accesible para la administración de pagos y asistencia de las alumnas.
 
 ## 📸 Captura de Pantalla
 
 ![Preview de la app](assets/Preview.png)
 
-## 🚀 Instalación local
+## 🚀 Instalación Local
 
 Sigue estos pasos para ejecutar la aplicación en tu máquina local:
 
@@ -16,36 +16,31 @@ Sigue estos pasos para ejecutar la aplicación en tu máquina local:
    ```bash
    git clone https://github.com/juanfrescodev/app-maktub.git
    cd app-maktub
+   ```
 
 2. Crea un entorno virtual (opcional pero recomendado):
 
-bash
-Copiar
-Editar
+```bash
 python -m venv venv
 source venv/bin/activate   # En Windows usa `venv\Scripts\activate`
-
+```
 3. Instala las dependencias:
 
-bash
-Copiar
-Editar
+```bash
 pip install -r requirements.txt
-
+```
 4. Ejecuta la aplicación:
 
-bash
-Copiar
-Editar
+```bash
 streamlit run app.py
 Esto abrirá la aplicación en tu navegador.
-
+```
 
 ## 🌐 Acceso Online
 Puedes acceder a la versión en línea de la aplicación sin necesidad de instalar nada desde el siguiente enlace:
 https://maktubapp.streamlit.app/
 
-Desde la versión web podrás utilizar todas las funcionalidades de la aplicación de manera completa.
+Desde la versión web podrás utilizar todas las funcionalidades de la aplicación de manera completa, pero ten en cuenta que podría haber limitaciones según la configuración.
 
 ## 📦 Dependencias principales
 Streamlit: Framework para crear aplicaciones web interactivas.
